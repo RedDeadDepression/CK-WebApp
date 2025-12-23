@@ -1,0 +1,99 @@
+You are an expert Frontend Developer and UI/UX Designer specializing in Telegram Mini Apps.
+
+YOUR GOAL:
+Create a fully functional, single-file Telegram Mini App (HTML + CSS + JS) for a Quit Smoking bot. The app acts as an "SOS Button" to help users cope with cravings immediately.
+
+TECH STACK:
+- Single HTML file (index.html) containing all CSS and JavaScript.
+- No external dependencies (no React/Vue builds), use Vanilla JS (ES6+) for maximum performance and easy deployment.
+- Use Tailwind CSS via CDN for styling.
+- Font: Inter or system-ui.
+
+DESIGN SYSTEM (VIBE):
+- Theme: Deep Dark Mode (Background #111111).
+- Accent Color: Mint Green (#00E676) for success/primary actions.
+- Text: White (#FFFFFF) and Light Grey (#B0BEC5).
+- Animations: Smooth transitions (0.3s ease-in-out) between screens.
+- Haptics: Simulate haptic feedback logic (visual scale effect on click).
+
+APP ARCHITECTURE & LOGIC:
+
+1. STATE MANAGEMENT:
+   - Store user answers for the Quiz.
+   - Filter the database of practices based on tags (LOC, SOC, STATE).
+   - Track "Attempts" (Max 3 attempts per session).
+   - Track "Excluded Types" (If user says "Not helpful", exclude that practice TYPE from next suggestion).
+
+2. SCREENS (VIEWS):
+
+   VIEW A: QUIZ (Split Screen Layout)
+   - Layout: The screen is split into two massive touch areas.
+   - Top 50%: Large "YES" button (Subtle Mint tint background). Icon: Check/ThumbUp.
+   - Bottom 50%: Large "NO" button (Dark Grey background). Icon: Cross/ThumbDown.
+   - Center: The Question Text floats in the middle (z-index high), bold, clear.
+   - Progress: 3 Steps.
+     Q1: "Have you been drinking alcohol?" (Icon: 🍷)
+     Q2: "Are you at home?" (Icon: 🏠)
+     Q3: "Are you alone?" (Icon: 👤)
+
+   VIEW B: PRACTICE (The Solution)
+   - Layout: Card style.
+   - Header: Practice Title (Large, Mint Color).
+   - Body: Practice Instruction (Clear text).
+   - Feature: "Smart Timer". IF the text contains keywords like "seconds" or "minute", show a "Start Timer" button that triggers a visual countdown ring.
+   - Footer: Two Buttons.
+     1. "✅ It helped" (Mint, Large) -> Goes to SUCCESS VIEW.
+     2. "🔄 Not helpful" (Grey, Small) -> Triggers ROTATION LOGIC.
+
+   VIEW C: SUCCESS
+   - Full screen success animation (e.g., a large Mint checkmark pulsing).
+   - Text: "You are strong. +1 Win recorded."
+   - Auto-close the app after 3 seconds (simulate `tg.close()`).
+
+   VIEW D: FAILURE (After 3 failed attempts)
+   - Text: "It's okay. Just breathe for 60 seconds. I'm with you."
+   - Button: "Close".
+
+3. LOGIC ALGORITHM (CRITICAL):
+
+   - DATA TAGS:
+     - LOC (Location): HOME (needs home items), ANY (anywhere).
+     - SOC (Social): PRIVATE (looks weird/noisy), PUBLIC (stealth/socially safe).
+     - STATE (Condition): SOBER (needs focus), ANY (works even if drunk).
+     - TYPE (Rotation): BRAIN, BODY, SENSE, BREATH.
+
+   - FILTERING RULES:
+     - IF Answer Q1="Yes" (Alcohol) -> Exclude practices with tag 'SOBER'.
+     - IF Answer Q2="No" (Not Home) -> Exclude practices with tag 'HOME'.
+     - IF Answer Q3="No" (Not Alone) -> Exclude practices with tag 'PRIVATE'.
+
+   - ROTATION RULES:
+     - When user clicks "Not helpful":
+       1. Add current practice's TYPE to 'ExcludedTypes'.
+       2. Find a new random practice from the filtered list where TYPE is NOT in 'ExcludedTypes'.
+       3. If no types left or attempts > 3 -> Go to VIEW D.
+
+DATASET (Insert this JSON into the code const PRACTICES_DB):
+[
+  { "id": 301, "title": "Ice Cube Shock", "text": "Hold an ice cube in your hand until it melts completely. Focus on the sensation.", "type": "SENSE", "tags": { "loc": "HOME", "soc": "PUBLIC", "state": "ANY" } },
+  { "id": 302, "title": "4-7-8 Breathing", "text": "Inhale for 4 sec. Hold for 7 sec. Exhale for 8 sec. Repeat 4 times.", "type": "BREATH", "tags": { "loc": "ANY", "soc": "PUBLIC", "state": "ANY" } },
+  { "id": 303, "title": "Eat a Lemon", "text": "Bite into a slice of lemon. The sharp sour taste resets your brain chemistry.", "type": "SENSE", "tags": { "loc": "HOME", "soc": "PUBLIC", "state": "ANY" } },
+  { "id": 304, "title": "15 Squats", "text": "Drop down and do 15 squats right now. Get your heart rate up!", "type": "BODY", "tags": { "loc": "ANY", "soc": "PRIVATE", "state": "SOBER" } },
+  { "id": 305, "title": "Find 5 Red Objects", "text": "Look around and name 5 red objects you can see. Say them out loud.", "type": "BRAIN", "tags": { "loc": "ANY", "soc": "PUBLIC", "state": "ANY" } },
+  { "id": 306, "title": "Cold Face Wash", "text": "Splash your face with freezing cold water 3 times.", "type": "SENSE", "tags": { "loc": "HOME", "soc": "PUBLIC", "state": "ANY" } },
+  { "id": 307, "title": "Write Your Why", "text": "Open notes on your phone. Write down ONE reason why you want to live.", "type": "BRAIN", "tags": { "loc": "ANY", "soc": "PUBLIC", "state": "SOBER" } },
+  { "id": 310, "title": "Fist Clench", "text": "Clench your fists as hard as you can for 5 seconds, then release. Repeat 5 times.", "type": "BODY", "tags": { "loc": "ANY", "soc": "PUBLIC", "state": "ANY" } },
+  { "id": 313, "title": "Change Location", "text": "Stand up and walk to a different room or step outside. Physically move your body.", "type": "BODY", "tags": { "loc": "ANY", "soc": "PUBLIC", "state": "ANY" } },
+  { "id": 314, "title": "Loud Music", "text": "Put on headphones. Play your favorite energetic song at max volume.", "type": "SENSE", "tags": { "loc": "ANY", "soc": "PUBLIC", "state": "ANY" } },
+  { "id": 315, "title": "Stairs Run", "text": "Find stairs. Run up and down for 1 minute.", "type": "BODY", "tags": { "loc": "ANY", "soc": "PUBLIC", "state": "SOBER" } },
+  { "id": 320, "title": "Phone Game", "text": "Play Tetris or Candy Crush for exactly 3 minutes.", "type": "BRAIN", "tags": { "loc": "ANY", "soc": "PUBLIC", "state": "ANY" } },
+  { "id": 321, "title": "Pillow Scream", "text": "Grab a pillow. Scream into it as loud as you can.", "type": "BODY", "tags": { "loc": "HOME", "soc": "PRIVATE", "state": "ANY" } },
+  { "id": 324, "title": "Smell Something Strong", "text": "Smell coffee beans, perfume, or essential oils deeply.", "type": "SENSE", "tags": { "loc": "ANY", "soc": "PUBLIC", "state": "SOBER" } },
+  { "id": 325, "title": "Count Backwards", "text": "Count backwards from 100 by 7s (100, 93, 86...)", "type": "BRAIN", "tags": { "loc": "ANY", "soc": "PUBLIC", "state": "SOBER" } },
+  { "id": 327, "title": "Plank Challenge", "text": "Hold a plank position for 1 minute. Let the burn distract you.", "type": "BODY", "tags": { "loc": "ANY", "soc": "PRIVATE", "state": "SOBER" } },
+  { "id": 339, "title": "Visualization", "text": "Close eyes. Visualize a giant stop sign. Then visualize a calm ocean.", "type": "BREATH", "tags": { "loc": "ANY", "soc": "PUBLIC", "state": "ANY" } },
+  { "id": 361, "title": "Ear Massage", "text": "Massage the upper part of your ear (Shen Men point) firmly.", "type": "BODY", "tags": { "loc": "ANY", "soc": "PUBLIC", "state": "ANY" } },
+  { "id": 362, "title": "Alphabet Game", "text": "Name an animal for every letter: A-Ant, B-Bear, C-Cat...", "type": "BRAIN", "tags": { "loc": "ANY", "soc": "PUBLIC", "state": "SOBER" } },
+  { "id": 383, "title": "10 Minute Rule", "text": "Tell yourself: 'I will smoke in 10 minutes if I still want to'. Wait.", "type": "BRAIN", "tags": { "loc": "ANY", "soc": "PUBLIC", "state": "ANY" } }
+]
+*(Note to AI: Use this dataset structure. Generate the full code including all CSS/JS inside index.html)*
