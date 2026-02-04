@@ -1,9 +1,12 @@
 import { db } from "./db";
-import { wins, type Win, type InsertWin } from "@shared/schema";
+import { wins, users, type Win, type InsertWin, type User, type InsertUser } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   createWin(win: InsertWin): Promise<Win>;
   getWins(): Promise<Win[]>;
+  getUserByTelegramId(telegramUserId: string): Promise<User | null>;
+  createOrUpdateUser(telegramUserId: string, isVip?: boolean): Promise<User>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -14,6 +17,33 @@ export class DatabaseStorage implements IStorage {
 
   async getWins(): Promise<Win[]> {
     return await db.select().from(wins);
+  }
+
+  async getUserByTelegramId(telegramUserId: string): Promise<User | null> {
+    const [user] = await db.select().from(users).where(eq(users.telegramUserId, telegramUserId)).limit(1);
+    return user || null;
+  }
+
+  async createOrUpdateUser(telegramUserId: string, isVip?: boolean): Promise<User> {
+    const existing = await this.getUserByTelegramId(telegramUserId);
+    
+    if (existing) {
+      if (isVip !== undefined) {
+        const [updated] = await db
+          .update(users)
+          .set({ isVip, updatedAt: new Date() })
+          .where(eq(users.telegramUserId, telegramUserId))
+          .returning();
+        return updated;
+      }
+      return existing;
+    }
+
+    const [newUser] = await db
+      .insert(users)
+      .values({ telegramUserId, isVip: isVip ?? false })
+      .returning();
+    return newUser;
   }
 }
 

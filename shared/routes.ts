@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { insertWinSchema, wins } from './schema';
+import { insertWinSchema, wins, users } from './schema';
 
 export const errorSchemas = {
   validation: z.object({
@@ -32,6 +32,16 @@ export const api = {
             200: z.array(z.custom<typeof wins.$inferSelect>()),
         }
     }
+  },
+  user: {
+    me: {
+      method: 'GET' as const,
+      path: '/api/me',
+      responses: {
+        200: z.custom<typeof users.$inferSelect>(),
+        404: errorSchemas.notFound,
+      },
+    },
   },
 };
 

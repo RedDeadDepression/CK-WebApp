@@ -1,13 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { BrainCircuit, ShieldAlert, Trophy } from "lucide-react";
 import { useWins } from "@/hooks/use-wins";
+import { getLocalStorageWins } from "@/lib/localStorageWins";
 
 export default function Home() {
   const { data: wins, isLoading } = useWins();
+  const [localStorageWins, setLocalStorageWins] = useState(0);
   
-  const totalWins = wins?.length || 0;
+  useEffect(() => {
+    // Get wins from LocalStorage as fallback
+    setLocalStorageWins(getLocalStorageWins());
+  }, []);
+  
+  // Use API wins if available, otherwise fall back to LocalStorage
+  const totalWins = wins?.length || localStorageWins;
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative overflow-hidden">
@@ -30,13 +38,13 @@ export default function Home() {
             <BrainCircuit className="w-10 h-10 text-primary" />
           </motion.div>
           <h1 className="text-4xl md:text-5xl font-black text-foreground tracking-tight">
-            CRAVING<br />
+            CRAVE<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60 text-glow">
-              INTERRUPTER
+              KILLER
             </span>
           </h1>
           <p className="text-muted-foreground text-lg max-w-xs mx-auto">
-            A scientifically proven panic button for when the urge hits.
+          The instant escape hatch for your toughest cravings.
           </p>
         </div>
 
