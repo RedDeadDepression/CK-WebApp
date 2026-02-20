@@ -14,5 +14,27 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  web:
+    build: .
+    container_name: crave_killer_web
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/crave_killer
+      NODE_ENV: production
+    ports:
+      - "5000:5000"
+
+  migrate:
+    build:
+      context: .
+      target: builder
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/crave_killer
+    command: sh -c "npm run db:push"
+
 volumes:
   pgdata:
