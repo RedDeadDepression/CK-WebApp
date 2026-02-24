@@ -5,42 +5,49 @@ import {
   timestamp,
   boolean,
   integer,
-  bigint,
   real
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
 
 /* ================= USERS ================= */
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
 
-  telegramUserId: bigint("telegram_user_id", { mode: "number" })
-    .unique()
-    .notNull(),
+  telegramUserId: text("telegram_user_id").unique().notNull(),
 
   fullName: text("full_name"),
   username: text("username"),
 
-  joinedAt: timestamp("joined_at").defaultNow(),
-
   dailyCost: real("daily_cost"),
+
   smokeFreeStartedAt: timestamp("smoke_free_started_at"),
 
   isVip: boolean("is_vip").default(false).notNull(),
+
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
 
 /* ================= USER STATS ================= */
 
 export const userStats = pgTable("user_stats", {
   id: serial("id").primaryKey(),
 
-  telegramUserId: bigint("telegram_user_id", { mode: "number" })
-    .unique()
+  telegramUserId: text("telegram_user_id")
     .notNull()
-    .references(() => users.telegramUserId, {
-      onDelete: "cascade",
-    }),
+    .references(() => users.telegramUserId, { onDelete: "cascade" })
+    .unique(),
 
   answerId01: integer("answer_id01"),
   answerId02: integer("answer_id02"),
@@ -56,53 +63,29 @@ export const userStats = pgTable("user_stats", {
     .notNull(),
 });
 
+export const insertUserStatsSchema = createInsertSchema(userStats).omit({
+  id: true,
+});
+
+export type UserStats = typeof userStats.$inferSelect;
+export type InsertUserStats = z.infer<typeof insertUserStatsSchema>;
+
 /* ================= WINS ================= */
 
 export const wins = pgTable("wins", {
   id: serial("id").primaryKey(),
 
-  telegramUserId: bigint("telegram_user_id", { mode: "number" })
+  telegramUserId: text("telegram_user_id")
     .notNull()
-    .references(() => users.telegramUserId, {
-      onDelete: "cascade",
-    }),
+    .references(() => users.telegramUserId, { onDelete: "cascade" }),
 
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-/* ================= QUESTIONS ================= */
-
-export const questions = pgTable("questions", {
-  id: serial("id").primaryKey(),
-  questionText: text("question_text").unique().notNull(),
+export const insertWinSchema = createInsertSchema(wins).omit({
+  id: true,
+  createdAt: true,
 });
-
-/* ================= RELATIONS ================= */
-
-export const usersRelations = relations(users, ({ one, many }) => ({
-  stats: one(userStats, {
-    fields: [users.telegramUserId],
-    references: [userStats.telegramUserId],
-  }),
-  wins: many(wins),
-}));
-
-export const winsRelations = relations(wins, ({ one }) => ({
-  user: one(users, {
-    fields: [wins.telegramUserId],
-    references: [users.telegramUserId],
-  }),
-}));
-
-/* ================= TYPES ================= */
-
-export type User = typeof users.$inferSelect;
-export type InsertUser = typeof users.$inferInsert;
-
-export type UserStats = typeof userStats.$inferSelect;
-export type InsertUserStats = typeof userStats.$inferInsert;
 
 export type Win = typeof wins.$inferSelect;
-export type InsertWin = typeof wins.$inferInsert;
-
-export type Question = typeof questions.$inferSelect;
+export type InsertWin = z.infer<typeof insertWinSchema>;

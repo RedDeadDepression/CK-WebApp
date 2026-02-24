@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { users, userStats, wins } from "./schema";
+import { wins, users } from "./schema";
 
 /* ================= ERROR SCHEMAS ================= */
 
@@ -19,38 +19,12 @@ export const errorSchemas = {
 /* ================= API ================= */
 
 export const api = {
-  user: {
-    me: {
-      method: "GET" as const,
-      path: "/api/me",
-      responses: {
-        200: z.object({
-          user: z.custom<typeof users.$inferSelect>(),
-          stats: z.custom<typeof userStats.$inferSelect>().nullable(),
-        }),
-        404: errorSchemas.notFound,
-      },
-    },
-
-    updateProfile: {
-      method: "POST" as const,
-      path: "/api/profile",
-      input: z.object({
-        dailyCost: z.number().optional(),
-      }),
-      responses: {
-        200: z.custom<typeof users.$inferSelect>(),
-        400: errorSchemas.validation,
-      },
-    },
-  },
-
   wins: {
     create: {
       method: "POST" as const,
       path: "/api/wins",
       input: z.object({
-        telegramUserId: z.number(),
+        telegramUserId: z.string(),
       }),
       responses: {
         201: z.custom<typeof wins.$inferSelect>(),
@@ -58,17 +32,29 @@ export const api = {
       },
     },
 
-    list: {
+    listByUser: {
       method: "GET" as const,
       path: "/api/wins/:telegramUserId",
       responses: {
         200: z.array(z.custom<typeof wins.$inferSelect>()),
+        404: errorSchemas.notFound,
+      },
+    },
+  },
+
+  user: {
+    me: {
+      method: "GET" as const,
+      path: "/api/me",
+      responses: {
+        200: z.custom<typeof users.$inferSelect>(),
+        404: errorSchemas.notFound,
       },
     },
   },
 };
 
-/* ================= URL BUILDER ================= */
+/* ================= UTILS ================= */
 
 export function buildUrl(
   path: string,
