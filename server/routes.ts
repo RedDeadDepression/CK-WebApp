@@ -9,41 +9,66 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
 
+  // ================= WINS =================
+
   app.post(api.wins.create.path, async (req, res) => {
     try {
-      const win = await storage.createWin({});
+      const { telegramUserId } = req.body;
+
+      if (!telegramUserId) {
+        return res.status(400).json({
+          message: "telegramUserId is required",
+        });
+      }
+
+      const win = await storage.createWin({ telegramUserId });
+
       res.status(201).json(win);
     } catch (err) {
       if (err instanceof z.ZodError) {
         return res.status(400).json({
-            message: err.errors[0].message,
+          message: err.errors[0].message,
         });
       }
-      throw err;
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
     }
   });
 
-  app.get(api.wins.list.path, async (req, res) => {
-    const wins = await storage.getWins();
-    res.json(wins);
+  app.get(api.wins.listByUser.path, async (req, res) => {
+    try {
+      const telegramUserId = req.params.telegramUserId;
+
+      if (!telegramUserId) {
+        return res.status(400).json({
+          message: "telegramUserId is required",
+        });
+      }
+
+      const wins = await storage.getWinsByTelegramId(telegramUserId);
+
+      res.status(200).json(wins);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
   });
+
+  // ================= USER =================
 
   app.get(api.user.me.path, async (req, res) => {
     try {
-      // Get telegram_user_id from query parameter
       const telegramUserId = req.query.telegram_user_id as string;
-      
+
       if (!telegramUserId) {
         return res.status(400).json({
           message: "telegram_user_id is required",
         });
       }
 
-      // Get or create user
       let user = await storage.getUserByTelegramId(telegramUserId);
-      
+
       if (!user) {
-        // Create new user if doesn't exist
         user = await storage.createOrUpdateUser(telegramUserId, false);
       }
 
@@ -54,7 +79,8 @@ export async function registerRoutes(
           message: err.errors[0].message,
         });
       }
-      throw err;
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
     }
   });
 

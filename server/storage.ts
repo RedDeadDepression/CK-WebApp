@@ -1,48 +1,96 @@
 import { db } from "./db";
-import { wins, users, type Win, type InsertWin, type User, type InsertUser } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import {
+  wins,
+  users,
+  type Win,
+  type User,
+} from "@shared/schema";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
-  createWin(win: InsertWin): Promise<Win>;
-  getWins(): Promise<Win[]>;
+  createWin(data: { telegramUserId: string }): Promise<Win>;
+  getWinsByTelegramId(telegramUserId: string): Promise<Win[]>;
   getUserByTelegramId(telegramUserId: string): Promise<User | null>;
-  createOrUpdateUser(telegramUserId: string, isVip?: boolean): Promise<User>;
+  createOrUpdateUser(
+    telegramUserId: string,
+    isVip?: boolean
+  ): Promise<User>;
 }
 
 export class DatabaseStorage implements IStorage {
-  async createWin(insertWin: InsertWin): Promise<Win> {
-    const [win] = await db.insert(wins).values(insertWin).returning();
+  // ================= WINS =================
+
+  async createWin(data: { telegramUserId: string }): Promise<Win> {
+    // Создаём пользователя если его нет
+    await this.createOrUpdateUser(data.telegramUserId);
+
+    const [win] = await db
+      .insert(wins)
+      .values({
+        telegramUserId: data.telegramUserId,
+      })
+      .returning();
+
     return win;
   }
 
-  async getWins(): Promise<Win[]> {
-    return await db.select().from(wins);
+  async getWinsByTelegramId(
+    telegramUserId: string
+  ): Promise<Win[]> {
+    return await db
+      .select()
+      .from(wins)
+      .where(eq(wins.telegramUserId, telegramUserId))
+      .orderBy(desc(wins.createdAt));
   }
 
-  async getUserByTelegramId(telegramUserId: string): Promise<User | null> {
-    const [user] = await db.select().from(users).where(eq(users.telegramUserId, telegramUserId)).limit(1);
+  // ================= USERS =================
+
+  async getUserByTelegramId(
+    telegramUserId: string
+  ): Promise<User | null> {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.telegramUserId, telegramUserId))
+      .limit(1);
+
     return user || null;
   }
 
-  async createOrUpdateUser(telegramUserId: string, isVip?: boolean): Promise<User> {
-    const existing = await this.getUserByTelegramId(telegramUserId);
-    
+  async createOrUpdateUser(
+    telegramUserId: string,
+    isVip?: boolean
+  ): Promise<User> {
+    const existing = await this.getUserByTelegramId(
+      telegramUserId
+    );
+
     if (existing) {
       if (isVip !== undefined) {
         const [updated] = await db
           .update(users)
-          .set({ isVip, updatedAt: new Date() })
+          .set({
+            isVip,
+            updatedAt: new Date(),
+          })
           .where(eq(users.telegramUserId, telegramUserId))
           .returning();
+
         return updated;
       }
+
       return existing;
     }
 
     const [newUser] = await db
       .insert(users)
-      .values({ telegramUserId, isVip: isVip ?? false })
+      .values({
+        telegramUserId,
+        isVip: isVip ?? false,
+      })
       .returning();
+
     return newUser;
   }
 }
