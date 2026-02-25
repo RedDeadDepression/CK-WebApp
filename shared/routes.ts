@@ -32,6 +32,16 @@ export const api = {
       },
     },
 
+    // ✅ вернуть старый list для совместимости
+    list: {
+      method: "GET" as const,
+      path: "/api/wins",
+      responses: {
+        200: z.array(z.custom<typeof wins.$inferSelect>()),
+      },
+    },
+
+    // ✅ user-scoped wins
     listByUser: {
       method: "GET" as const,
       path: "/api/wins/:telegramUserId",
