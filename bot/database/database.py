@@ -189,6 +189,20 @@ class Database:
                 telegram_user_id,
             )
 
+    async def is_survey_completed(self, telegram_user_id: int | str) -> bool:
+        telegram_user_id = self._normalize_id(telegram_user_id)
+
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow(
+                """
+                SELECT survey_completed
+                FROM user_stats
+                WHERE telegram_user_id = $1
+                """,
+                telegram_user_id,
+            )
+            return bool(row["survey_completed"]) if row else False
+
     async def mark_onboarding_completed(self, telegram_user_id: int | str):
         telegram_user_id = self._normalize_id(telegram_user_id)
 
