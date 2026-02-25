@@ -23,7 +23,7 @@ async def process_start_command(message: Message, db: Database, state: FSMContex
         ])
     )
 
-    await db.add_user(user_id = user_id, full_name = full_name, username = username)
+    await db.add_user(user_id, full_name, username)
 
     survey_status = await db.is_survey_completed(user_id)
 
