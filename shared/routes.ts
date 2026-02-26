@@ -1,22 +1,5 @@
 import { z } from "zod";
-import { wins, users } from "./schema";
-
-/* ================= ERROR SCHEMAS ================= */
-
-export const errorSchemas = {
-  validation: z.object({
-    message: z.string(),
-    field: z.string().optional(),
-  }),
-  notFound: z.object({
-    message: z.string(),
-  }),
-  internal: z.object({
-    message: z.string(),
-  }),
-};
-
-/* ================= API ================= */
+import { wins, users, attempts } from "./schema";
 
 export const api = {
   wins: {
@@ -28,26 +11,41 @@ export const api = {
       }),
       responses: {
         201: z.custom<typeof wins.$inferSelect>(),
-        400: errorSchemas.validation,
       },
     },
 
-    // ✅ вернуть старый list для совместимости
-    list: {
-      method: "GET" as const,
-      path: "/api/wins",
-      responses: {
-        200: z.array(z.custom<typeof wins.$inferSelect>()),
-      },
-    },
-
-    // ✅ user-scoped wins
     listByUser: {
       method: "GET" as const,
       path: "/api/wins/:telegramUserId",
       responses: {
         200: z.array(z.custom<typeof wins.$inferSelect>()),
-        404: errorSchemas.notFound,
+      },
+    },
+  },
+
+  attempts: {
+    create: {
+      method: "POST" as const,
+      path: "/api/attempts",
+      input: z.object({
+        telegramUserId: z.string(),
+      }),
+      responses: {
+        201: z.custom<typeof attempts.$inferSelect>(),
+      },
+    },
+  },
+
+  stats: {
+    byUser: {
+      method: "GET" as const,
+      path: "/api/stats/:telegramUserId",
+      responses: {
+        200: z.object({
+          wins: z.number(),
+          attempts: z.number(),
+          dailyCost: z.number().nullable(),
+        }),
       },
     },
   },
@@ -58,27 +56,7 @@ export const api = {
       path: "/api/me",
       responses: {
         200: z.custom<typeof users.$inferSelect>(),
-        404: errorSchemas.notFound,
       },
     },
   },
 };
-
-/* ================= UTILS ================= */
-
-export function buildUrl(
-  path: string,
-  params?: Record<string, string | number>
-): string {
-  let url = path;
-
-  if (params) {
-    Object.entries(params).forEach(([key, value]) => {
-      if (url.includes(`:${key}`)) {
-        url = url.replace(`:${key}`, String(value));
-      }
-    });
-  }
-
-  return url;
-}

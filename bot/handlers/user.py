@@ -6,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 from lexicon.lexicon_en import LEXICON_EN
 from database.database import Database
 import keyboards
-from services.common_utils import show_main_menu, confidence_tracker, money_tracker, smoke_free_tracker
+from services.common_utils import show_main_menu
 
 
 user_router = Router()
