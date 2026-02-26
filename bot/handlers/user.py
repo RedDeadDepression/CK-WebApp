@@ -37,30 +37,27 @@ async def process_start_command(message: Message, db: Database, state: FSMContex
 async def process_my_stats_button_click(callback: CallbackQuery, db: Database):
     user_id = callback.from_user.id
 
-    try:
-        confidence = await confidence_tracker(db, user_id)
-        profit = await money_tracker(db, user_id)
-        try:
-            smoke_free_time = await smoke_free_tracker(db, user_id)
-            smoke_free_text = ""
-        except ValueError:
-            smoke_free_time = {"days": 0, "hours": 0, "minutes": 0}
-            smoke_free_text = "⚠️ Timer not started. Press ▶️ Start / Restart timer in 🌬️ <b>SMOKE FREE TRACKER</b>"
-    except ValueError as e:
-        await callback.message.edit_text(f"⚠️ {str(e)}")
-        return
+    wins = await db.count_user_wins(user_id)
+    attempts = await db.count_user_attempts(user_id)
+    daily_cost = await db.get_daily_cost(user_id)
+
+    # 💵 Saved money
+    if daily_cost:
+        saved_money = wins * (daily_cost / 20)
+    else:
+        saved_money = 0
+
+    # 💪 Confidence
+    attempts = attempts if attempts > 0 else 1
+    confidence_text = f"{wins} wins out of {attempts} attempts"
+
+    # ⏳ Saved time
+    saved_time = wins * 4
 
     text = (
-        f"📈 <u><b>MY STATS</b></u>\n\n"
-        f"💪 <b>CONFIDENCE TRACKER</b>\n"
-        f"Your confidence level is {confidence}\n"
-        "-------------------------\n\n"
-        f"💰 <b>MONEY TRACKER</b>\n"
-        f"💸 Since you joined, you could have saved approximately ${profit:,} without smoking.\n"
-        "-------------------------\n\n"
-        f"🌬️ <b>SMOKE FREE TRACKER</b>\n"
-        f"🚭 Your are smoke-free for:\n🗓 {smoke_free_time['days']} days, ⏰ {smoke_free_time['hours']} hours, {smoke_free_time['minutes']} minutes!\n"
-        f"{smoke_free_text}"
+        f"💵 SAVED MONEY: ${saved_money:.2f} in unsmoked cigarettes\n\n"
+        f"💪 CONFIDENCE TRACKER: {confidence_text}\n\n"
+        f"⏳ SAVED TIME: {saved_time} minutes for any task"
     )
 
     await callback.message.edit_text(
@@ -76,75 +73,7 @@ async def process_my_stats_locked(callback: CallbackQuery):
         show_alert = True
     )
 
-@user_router.callback_query(F.data == "money_tracker_button_click")
-async def process_money_tracker_button_click(callback: CallbackQuery, db: Database):
-    user_id = callback.from_user.id
-
-    try:
-        profit = await money_tracker(db, user_id)
-        text = f'💸 Since you joined, you could have saved approximately ${profit:,} without smoking.'
-
-    except ValueError as e:
-        text = f"⚠️ {str(e)}"
-
-    await callback.message.edit_text(
-        text,
-        reply_markup = keyboards.back_to_my_profile_keyboard
-    )
-    await callback.answer()
-
-@user_router.callback_query(F.data == "smoke_free_tracker_button_click")
-async def process_smoke_free_tracker_button_click(callback: CallbackQuery, db: Database):
-    user_id = callback.from_user.id
-
-    try:
-        data = await smoke_free_tracker(db, user_id)
-
-        text = (
-            "🚭 <b>You are smoke-free for:</b>\n\n"
-            f"🗓 {data['days']} days\n"
-            f"⏰ {data['hours']} hours {data['minutes']} minutes\n\n"
-            "Keep going 💪"
-        )
-
-    except ValueError:
-        text = (
-            "⏱ You haven't started the smoke-free timer yet.\n\n"
-            "Press the button below to start."
-        )
-
-    await callback.message.edit_text(
-        text,
-        reply_markup = keyboards.smoke_free_tracker_keyboard,
-        parse_mode = "HTML"
-    )
-    await callback.answer()
-
-@user_router.callback_query(F.data == "start_smoke_free_timer_button_click")
-async def process_start_smoke_free_timer_button_click(callback: CallbackQuery, db: Database):
-    user_id = callback.from_user.id
-
-    await db.start_smoke_free(user_id)
-
-    await callback.message.edit_text(
-        "✅ Smoke-free timer started!\n\n"
-        "Come back anytime to check your progress 🚀",
-        reply_markup = keyboards.back_to_my_profile_keyboard
-    )
-    await callback.answer()
-
-@user_router.callback_query(F.data == "how_to_use_smoke_free_timer_button_click")
-async def process_how_to_use_smoke_free_timer_button_click(callback: CallbackQuery, db: Database):
-    await callback.answer(
-        "You can hit it whenever you feel you have truly slipped, not just smoked a single cigarette — no shame, no blame 🙂",
-        show_alert = True
-    )
-
 @user_router.callback_query(F.data == "back_to_main_menu_button_click")
 async def process_back_to_main_menu_button_click(callback: CallbackQuery, state: FSMContext, db: Database):
     await show_main_menu(callback, state, db=db)
     return
-
-@user_router.callback_query(F.data == "confidence_tracker_button_click")
-async def process_html_test(callback: CallbackQuery):
-    pass

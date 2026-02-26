@@ -13,21 +13,6 @@ from lexicon.lexicon_en import (
 )
 
 
-# GET STARTED Keyboard
-get_started_keyboard_builder = InlineKeyboardBuilder()
-
-get_started_keyboard_buttons = [
-    InlineKeyboardButton(
-        text = "GET STARTED ‼",
-        callback_data = "get_started_button_click"
-    )
-]
-
-get_started_keyboard_builder.row(*get_started_keyboard_buttons, width = 1)
-
-get_started_keyboard = get_started_keyboard_builder.as_markup()
-
-
 # MAIN MENU Keyboard
 def get_main_menu_keyboard(is_survey_completed: bool):
     main_menu_keyboard_builder = InlineKeyboardBuilder()
@@ -133,32 +118,6 @@ def onboarding_keyboard(text: str):
 
     return onboarding_keyboard_builder.as_markup()
 
- # My profile
-my_profile_keyboard_builder = InlineKeyboardBuilder()
-
-my_profile_keyboard_buttons = [
-    InlineKeyboardButton(
-        text = "💪 CONFIDENCE TRACKER",
-        callback_data = "confidence_tracker_button_click"
-    ),
-    InlineKeyboardButton(
-        text = "💰 MONEY TRACKER",
-        callback_data = "money_tracker_button_click"
-    ),
-    InlineKeyboardButton(
-        text = "🌬️ SMOKE FREE TRACKER",
-        callback_data = "smoke_free_tracker_button_click"
-    ),
-    InlineKeyboardButton(
-        text = "⬅️ Back to 🏠 MAIN MENU",
-        callback_data = "back_to_main_menu_button_click"
-    )
-]
-
-my_profile_keyboard_builder.row(*my_profile_keyboard_buttons, width = 1)
-
-my_profile_keyboard = my_profile_keyboard_builder.as_markup()
-
  # Back to Main menu
 back_to_main_menu_keyboard_builder = InlineKeyboardBuilder()
 
@@ -172,39 +131,3 @@ back_to_main_menu_keyboard_buttons = [
 back_to_main_menu_keyboard_builder.row(*back_to_main_menu_keyboard_buttons, width = 1)
 
 back_to_main_menu_keyboard = back_to_main_menu_keyboard_builder.as_markup()
-
- # Back to My profile
-back_to_my_profile_keyboard_builder = InlineKeyboardBuilder()
-
-back_to_my_profile_keyboard_buttons = [
-    InlineKeyboardButton(
-        text = "⬅️ Back to 👤 MY PROFILE",
-        callback_data = "back_to_my_profile_button_click"
-    )
-]
-
-back_to_my_profile_keyboard_builder.row(*back_to_my_profile_keyboard_buttons, width = 1)
-
-back_to_my_profile_keyboard = back_to_my_profile_keyboard_builder.as_markup()
-
- # Smoke-free tracker
-smoke_free_tracker_keyboard_builder = InlineKeyboardBuilder()
-
-smoke_free_tracker_keyboard_buttons = [
-    InlineKeyboardButton(
-        text = "▶️ Start / Restart timer",
-        callback_data = "start_smoke_free_timer_button_click",
-    ),
-    InlineKeyboardButton(
-        text = "ℹ️ HOW TO USE",
-        callback_data = "how_to_use_smoke_free_timer_button_click"
-    ),
-    InlineKeyboardButton(
-        text = "⬅️ Back to 👤 MY PROFILE",
-        callback_data = "back_to_my_profile_button_click"
-    )
-]
-
-smoke_free_tracker_keyboard_builder.row(*smoke_free_tracker_keyboard_buttons, width = 1)
-
-smoke_free_tracker_keyboard = smoke_free_tracker_keyboard_builder.as_markup()
