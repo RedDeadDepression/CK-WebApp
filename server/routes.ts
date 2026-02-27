@@ -9,11 +9,11 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
 
-  // ================= WINS =================
+  // ================= CREATE WIN =================
 
   app.post(api.wins.create.path, async (req, res) => {
     try {
-      const { telegramUserId } = req.body;
+      const telegramUserId = req.body.telegramUserId;
 
       if (!telegramUserId) {
         return res.status(400).json({
@@ -30,58 +30,58 @@ export async function registerRoutes(
           message: err.errors[0].message,
         });
       }
-      console.error(err);
-      return res.status(500).json({ message: "Internal server error" });
+      throw err;
     }
   });
 
-  app.get(api.wins.listByUser.path, async (req, res) => {
-    try {
-      const telegramUserId = req.params.telegramUserId;
+  // ================= CREATE ATTEMPT =================
 
-      if (!telegramUserId) {
-        return res.status(400).json({
-          message: "telegramUserId is required",
-        });
-      }
+  app.post("/api/attempts", async (req, res) => {
+    const telegramUserId = req.body.telegramUserId;
 
-      const wins = await storage.getWinsByTelegramId(telegramUserId);
-
-      res.status(200).json(wins);
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ message: "Internal server error" });
+    if (!telegramUserId) {
+      return res.status(400).json({
+        message: "telegramUserId is required",
+      });
     }
+
+    const attempt = await storage.createAttempt(telegramUserId);
+
+    res.status(201).json(attempt);
+  });
+
+  // ================= USER STATS =================
+
+  app.get("/api/stats/:telegramUserId", async (req, res) => {
+    const { telegramUserId } = req.params;
+
+    const wins = await storage.countWins(telegramUserId);
+    const attempts = await storage.countAttempts(telegramUserId);
+
+    res.json({
+      wins,
+      attempts,
+    });
   });
 
   // ================= USER =================
 
   app.get(api.user.me.path, async (req, res) => {
-    try {
-      const telegramUserId = req.query.telegram_user_id as string;
+    const telegramUserId = req.query.telegram_user_id as string;
 
-      if (!telegramUserId) {
-        return res.status(400).json({
-          message: "telegram_user_id is required",
-        });
-      }
-
-      let user = await storage.getUserByTelegramId(telegramUserId);
-
-      if (!user) {
-        user = await storage.createOrUpdateUser(telegramUserId, false);
-      }
-
-      res.status(200).json(user);
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        return res.status(400).json({
-          message: err.errors[0].message,
-        });
-      }
-      console.error(err);
-      return res.status(500).json({ message: "Internal server error" });
+    if (!telegramUserId) {
+      return res.status(400).json({
+        message: "telegram_user_id is required",
+      });
     }
+
+    let user = await storage.getUserByTelegramId(telegramUserId);
+
+    if (!user) {
+      user = await storage.createOrUpdateUser(telegramUserId);
+    }
+
+    res.status(200).json(user);
   });
 
   return httpServer;
