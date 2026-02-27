@@ -3,51 +3,35 @@ import {
   wins,
   users,
   attempts,
+  userStats,
   type Win,
   type InsertWin,
+  type User,
+  type InsertUser,
   type Attempt,
   type InsertAttempt,
-  type User,
+  type UserStats
 } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
 export interface IStorage {
   createWin(win: InsertWin): Promise<Win>;
+  getWins(): Promise<Win[]>;
   getWinsByTelegramId(telegramUserId: string): Promise<Win[]>;
 
   createAttempt(attempt: InsertAttempt): Promise<Attempt>;
-  countAttempts(telegramUserId: string): Promise<number>;
+  getAttemptsByTelegramId(telegramUserId: string): Promise<Attempt[]>;
 
   getUserByTelegramId(telegramUserId: string): Promise<User | null>;
   createOrUpdateUser(telegramUserId: string, isVip?: boolean): Promise<User>;
+
+  getUserStats(telegramUserId: string): Promise<UserStats | null>;
+  createUserStatsIfNotExists(telegramUserId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
-  async createWin(insertWin: InsertWin): Promise<Win> {
-    const [win] = await db.insert(wins).values(insertWin).returning();
-    return win;
-  }
 
-  async getWinsByTelegramId(telegramUserId: string): Promise<Win[]> {
-    return await db
-      .select()
-      .from(wins)
-      .where(eq(wins.telegramUserId, telegramUserId));
-  }
-
-  async createAttempt(insertAttempt: InsertAttempt): Promise<Attempt> {
-    const [attempt] = await db.insert(attempts).values(insertAttempt).returning();
-    return attempt;
-  }
-
-  async countAttempts(telegramUserId: string): Promise<number> {
-    const result = await db
-      .select()
-      .from(attempts)
-      .where(eq(attempts.telegramUserId, telegramUserId));
-
-    return result.length;
-  }
+  // ================= USERS =================
 
   async getUserByTelegramId(telegramUserId: string): Promise<User | null> {
     const [user] = await db
@@ -82,7 +66,70 @@ export class DatabaseStorage implements IStorage {
       .values({ telegramUserId, isVip: isVip ?? false })
       .returning();
 
+    await this.createUserStatsIfNotExists(telegramUserId);
+
     return newUser;
+  }
+
+  // ================= WINS =================
+
+  async createWin(insertWin: InsertWin): Promise<Win> {
+    const [win] = await db.insert(wins).values(insertWin).returning();
+    return win;
+  }
+
+  async getWins(): Promise<Win[]> {
+    return await db.select().from(wins);
+  }
+
+  async getWinsByTelegramId(telegramUserId: string): Promise<Win[]> {
+    return await db
+      .select()
+      .from(wins)
+      .where(eq(wins.telegramUserId, telegramUserId));
+  }
+
+  // ================= ATTEMPTS =================
+
+  async createAttempt(insertAttempt: InsertAttempt): Promise<Attempt> {
+    const [attempt] = await db.insert(attempts).values(insertAttempt).returning();
+    return attempt;
+  }
+
+  async getAttemptsByTelegramId(telegramUserId: string): Promise<Attempt[]> {
+    return await db
+      .select()
+      .from(attempts)
+      .where(eq(attempts.telegramUserId, telegramUserId));
+  }
+
+  async countAttempts(telegramUserId: string): Promise<number> {
+    const rows = await db
+      .select()
+      .from(attempts)
+      .where(eq(attempts.telegramUserId, telegramUserId));
+
+    return rows.length;
+  }
+
+  // ================= USER STATS =================
+
+  async getUserStats(telegramUserId: string): Promise<UserStats | null> {
+    const [stats] = await db
+      .select()
+      .from(userStats)
+      .where(eq(userStats.telegramUserId, telegramUserId))
+      .limit(1);
+
+    return stats || null;
+  }
+
+  async createUserStatsIfNotExists(telegramUserId: string): Promise<void> {
+    const existing = await this.getUserStats(telegramUserId);
+
+    if (!existing) {
+      await db.insert(userStats).values({ telegramUserId });
+    }
   }
 }
 

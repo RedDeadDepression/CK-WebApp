@@ -6,7 +6,7 @@ export function registerRoutes(app: Express) {
   /* ================= USER ================= */
 
   app.get("/api/me", async (req, res) => {
-    const telegramUserId = String(req.query.telegram_user_id);
+    const telegramUserId = String(req.query.telegram_user_id || "");
 
     if (!telegramUserId) {
       return res.status(400).json({ message: "telegram_user_id required" });
