@@ -62,3 +62,6 @@ export type InsertWin = typeof wins.$inferInsert;
 
 export type Attempt = typeof attempts.$inferSelect;
 export type InsertAttempt = typeof attempts.$inferInsert;
+
+export type UserStats = typeof userStats.$inferSelect;
+export type InsertUserStats = typeof userStats.$inferInsert;
