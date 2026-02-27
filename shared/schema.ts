@@ -4,7 +4,8 @@ import {
   text,
   timestamp,
   boolean,
-  numeric
+  integer,
+  real,
 } from "drizzle-orm/pg-core";
 
 /* ================= USERS ================= */
@@ -12,16 +13,13 @@ import {
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   telegramUserId: text("telegram_user_id").notNull().unique(),
-
   fullName: text("full_name"),
   username: text("username"),
-
-  dailyCost: numeric("daily_cost"),
-
-  isVip: boolean("is_vip").default(false),
-
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  dailyCost: real("daily_cost"),
+  smokeFreeStartedAt: timestamp("smoke_free_started_at"),
+  isVip: boolean("is_vip").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 /* ================= WINS ================= */
@@ -29,8 +27,7 @@ export const users = pgTable("users", {
 export const wins = pgTable("wins", {
   id: serial("id").primaryKey(),
   telegramUserId: text("telegram_user_id").notNull(),
-
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 /* ================= ATTEMPTS ================= */
@@ -38,8 +35,21 @@ export const wins = pgTable("wins", {
 export const attempts = pgTable("attempts", {
   id: serial("id").primaryKey(),
   telegramUserId: text("telegram_user_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
 
-  createdAt: timestamp("created_at").defaultNow(),
+/* ================= USER STATS ================= */
+
+export const userStats = pgTable("user_stats", {
+  telegramUserId: text("telegram_user_id").primaryKey(),
+
+  answer_id01: integer("answer_id01"),
+  answer_id02: integer("answer_id02"),
+  answer_id03: integer("answer_id03"),
+  answer_id04: integer("answer_id04"),
+
+  surveyCompleted: boolean("survey_completed").default(false),
+  onboardingCompleted: boolean("onboarding_completed").default(false),
 });
 
 /* ================= TYPES ================= */
