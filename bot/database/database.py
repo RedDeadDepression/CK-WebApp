@@ -198,9 +198,10 @@ class Database:
         async with self.pool.acquire() as conn:
             await conn.execute(
                 """
-                UPDATE user_stats
-                SET survey_completed = true
-                WHERE telegram_user_id = $1
+                INSERT INTO user_stats (telegram_user_id, survey_completed)
+                VALUES ($1, true)
+                ON CONFLICT (telegram_user_id)
+                DO UPDATE SET survey_completed = true
                 """,
                 telegram_user_id,
             )
@@ -225,9 +226,10 @@ class Database:
         async with self.pool.acquire() as conn:
             await conn.execute(
                 """
-                UPDATE user_stats
-                SET onboarding_completed = true
-                WHERE telegram_user_id = $1
+                INSERT INTO user_stats (telegram_user_id, onboarding_completed)
+                VALUES ($1, true)
+                ON CONFLICT (telegram_user_id)
+                DO UPDATE SET onboarding_completed = true
                 """,
                 telegram_user_id,
             )
@@ -276,16 +278,16 @@ class Database:
 
     # ================= ATTEMPTS =================
 
-async def count_user_attempts(self, telegram_user_id: int | str) -> int:
-    telegram_user_id = self._normalize_id(telegram_user_id)
+    async def count_user_attempts(self, telegram_user_id: int | str) -> int:
+        telegram_user_id = self._normalize_id(telegram_user_id)
 
-    async with self.pool.acquire() as conn:
-        row = await conn.fetchrow(
-            """
-            SELECT COUNT(*) as total
-            FROM attempts
-            WHERE telegram_user_id = $1
-            """,
-            telegram_user_id
-        )
-        return row["total"] if row else 0
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow(
+                """
+                SELECT COUNT(*) as total
+                FROM attempts
+                WHERE telegram_user_id = $1
+                """,
+                telegram_user_id
+            )
+            return row["total"] if row else 0
