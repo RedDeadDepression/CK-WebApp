@@ -157,6 +157,16 @@ class Database:
                 telegram_user_id,
             )
 
+    async def get_answer(self, user_id: int, question_id: int):
+        query = """
+            SELECT answer
+            FROM user_stats
+            WHERE user_id = $1 AND question_id = $2
+            LIMIT 1
+        """
+        row = await self.pool.fetchrow(query, user_id, question_id)
+        return row["answer"] if row else None
+
     async def mark_survey_completed(self, telegram_user_id: int | str):
         telegram_user_id = self._normalize_id(telegram_user_id)
 
