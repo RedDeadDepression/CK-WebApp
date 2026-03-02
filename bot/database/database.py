@@ -114,16 +114,19 @@ class Database:
                 telegram_user_id,
             )
 
-    async def get_daily_cost(self, user_id: int):
-        row = await self.pool.fetchrow(
-            """
-            SELECT daily_cost
-            FROM users
-            WHERE telegram_user_id = $1
-            """,
-            str(user_id)
-        )
-        return row["daily_cost"] if row else None
+    async def get_daily_cost(self, telegram_user_id: int | str):
+        telegram_user_id = self._normalize_id(telegram_user_id)
+
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow(
+                """
+                SELECT daily_cost
+                FROM users
+                WHERE telegram_user_id = $1
+                """,
+                telegram_user_id
+            )
+            return row["daily_cost"] if row else None
 
     # ================= USER STATS =================
 
@@ -149,19 +152,22 @@ class Database:
         async with self.pool.acquire() as conn:
             await conn.execute(
                 f"""
-                UPDATE user_stats
-                SET {column} = $1
-                WHERE telegram_user_id = $2
+                INSERT INTO user_stats (telegram_user_id, {column})
+                VALUES ($1, $2)
+                ON CONFLICT (telegram_user_id)
+                DO UPDATE SET {column} = EXCLUDED.{column}
                 """,
-                answer_id,
                 telegram_user_id,
+                answer_id,
             )
 
     async def get_answer(
         self,
-        telegram_user_id: str,
+        telegram_user_id: int | str,
         question_id: int,
     ) -> Optional[int]:
+
+        telegram_user_id = self._normalize_id(telegram_user_id)
 
         column_map = {
             1: "answer_id01",
@@ -254,17 +260,6 @@ class Database:
                 telegram_user_id,
             )
 
-    async def count_user_wins(self, user_id: int) -> int:
-        row = await self.pool.fetchrow(
-            """
-            SELECT COUNT(*) as total
-            FROM wins
-            WHERE telegram_user_id = $1
-            """,
-            str(user_id)
-        )
-        return row["total"] if row else 0
-
     async def count_user_wins(self, telegram_user_id: int | str) -> int:
         telegram_user_id = self._normalize_id(telegram_user_id)
 
@@ -281,13 +276,16 @@ class Database:
 
     # ================= ATTEMPTS =================
 
-    async def count_user_attempts(self, user_id: int) -> int:
-        row = await self.pool.fetchrow(
+async def count_user_attempts(self, telegram_user_id: int | str) -> int:
+    telegram_user_id = self._normalize_id(telegram_user_id)
+
+    async with self.pool.acquire() as conn:
+        row = await conn.fetchrow(
             """
             SELECT COUNT(*) as total
             FROM attempts
             WHERE telegram_user_id = $1
             """,
-            str(user_id)
+            telegram_user_id
         )
         return row["total"] if row else 0
