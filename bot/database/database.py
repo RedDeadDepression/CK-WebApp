@@ -234,6 +234,20 @@ class Database:
                 telegram_user_id,
             )
 
+    async def is_onboarding_completed(self, telegram_user_id: int | str) -> bool:
+        telegram_user_id = self._normalize_id(telegram_user_id)
+
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow(
+                """
+                SELECT onboarding_completed
+                FROM user_stats
+                WHERE telegram_user_id = $1
+                """,
+                telegram_user_id,
+            )
+            return bool(row["onboarding_completed"]) if row else False
+
     # ================= WINS =================
 
     async def add_win(self, telegram_user_id: int | str):

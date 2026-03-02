@@ -40,23 +40,20 @@ async def process_start_command(message: Message, db: Database, state: FSMContex
 
 @user_router.callback_query(F.data == "my_stats_button_click")
 async def process_my_stats_button_click(callback: CallbackQuery, db: Database):
-    user_id = callback.from_user.id
+    telegram_user_id = callback.from_user.id
 
-    wins = await db.count_user_wins(telegram_user_id=user_id)
-    attempts = await db.count_user_attempts(telegram_user_id=user_id)
-    daily_cost = await db.get_daily_cost(telegram_user_id=user_id)
+    wins = await db.count_user_wins(telegram_user_id)
+    attempts = await db.count_user_attempts(telegram_user_id)
+    daily_cost = await db.get_daily_cost(telegram_user_id)
 
-    # 💵 Saved money
     if daily_cost:
         saved_money = wins * (daily_cost / 20)
     else:
         saved_money = 0
 
-    # 💪 Confidence
     attempts = attempts if attempts > 0 else 1
     confidence_text = f"{wins} wins out of {attempts} attempts"
 
-    # ⏳ Saved time
     saved_time = wins * 4
 
     text = (
