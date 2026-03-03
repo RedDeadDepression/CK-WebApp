@@ -260,6 +260,25 @@ async def process_finish(callback: CallbackQuery, state: FSMContext, db: Databas
 
 
 # ================= ONBOARDING =================
+@survey_router.callback_query(F.data == "keep_it_button_click", FSMSurvey.calculating)
+async def start_onboarding(callback: CallbackQuery, state: FSMContext):
+    await state.set_state(FSMSurvey.onboarding)
+
+    await state.update_data(
+        onboarding_flow="after_q3",
+        onboarding_branch="default",
+        onboarding_step=0,
+        show_loader_after_step=False
+    )
+
+    flow = ONBOARDING_FLOWS_EN["after_q3"]["default"]
+    step = flow[0]
+
+    await callback.message.edit_text(
+        step["text"],
+        reply_markup=onboarding_keyboard(step["button"])
+    )
+    await callback.answer()
 
 @survey_router.callback_query(F.data == "onboarding_next", FSMSurvey.onboarding)
 async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Database):
