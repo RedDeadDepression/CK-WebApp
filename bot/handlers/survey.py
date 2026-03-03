@@ -87,32 +87,30 @@ async def process_next_locked(callback: CallbackQuery):
 
 # ================= NEXT =================
 
-@survey_router.callback_query(F.data == "next", FSMSurvey.answering)
+@survey_router.callback_query(F.data == "next")
 async def process_next(callback: CallbackQuery, state: FSMContext, db: Database):
+
+    current_state = await state.get_state()
+
+    if current_state != FSMSurvey.answering.state:
+        await callback.answer()
+        return
+
     data = await state.get_data()
     question_id = data.get("question_id")
     telegram_user_id = callback.from_user.id
     total_questions = len(LEXICON_QUESTIONS_EN)
 
-    if question_id is None:
+    if not question_id:
         await callback.answer("Session expired. Use /start", show_alert=True)
         return
 
-    # Question 3 special logic
+    # === SPECIAL BLOCK FOR QUESTION 3 ===
     if question_id == 3:
-        if await db.is_onboarding_completed(telegram_user_id):
-            await state.update_data(question_id=4)
-
-            saved_answer = await db.get_answer(telegram_user_id, 4)
-
-            await callback.message.edit_text(
-                build_question_text(4),
-                reply_markup=survey_keyboard(4, selected_answer=saved_answer)
-            )
-            await callback.answer()
-            return
 
         await state.set_state(FSMSurvey.calculating)
+
+        await callback.message.edit_reply_markup(reply_markup=None)
 
         await show_progress_bar(callback)
 
@@ -143,6 +141,30 @@ async def process_next(callback: CallbackQuery, state: FSMContext, db: Database)
         )
         return
 
+    # === NORMAL NEXT ===
+    if question_id >= total_questions:
+        await callback.answer()
+        return
+
+    next_question_id = question_id + 1
+
+    saved_answer = await db.get_answer(
+        telegram_user_id,
+        next_question_id
+    )
+
+    await state.update_data(question_id=next_question_id)
+
+    await callback.message.edit_text(
+        build_question_text(next_question_id),
+        reply_markup=survey_keyboard(
+            next_question_id,
+            selected_answer=saved_answer
+        )
+    )
+
+    await callback.answer()
+
 
 # ================= BACK LOCKED =================
 
@@ -156,28 +178,41 @@ async def process_back_locked(callback: CallbackQuery):
 
 # ================= BACK =================
 
-@survey_router.callback_query(F.data == "back", FSMSurvey.answering)
+@survey_router.callback_query(F.data == "back")
 async def process_back(callback: CallbackQuery, state: FSMContext, db: Database):
+
+    current_state = await state.get_state()
+
+    if current_state != FSMSurvey.answering.state:
+        await callback.answer()
+        return
+
     data = await state.get_data()
     current_question = data.get("question_id", 1)
 
     if current_question <= 1:
-        await callback.answer()
+        await callback.answer("This is the first question 🙂", show_alert=True)
         return
 
     new_question = current_question - 1
     telegram_user_id = callback.from_user.id
 
-    saved_answer = await db.get_answer(telegram_user_id, new_question)
+    saved_answer = await db.get_answer(
+        telegram_user_id,
+        new_question
+    )
 
     await state.update_data(question_id=new_question)
 
     await callback.message.edit_text(
         build_question_text(new_question),
-        reply_markup=survey_keyboard(new_question, selected_answer=saved_answer)
+        reply_markup=survey_keyboard(
+            new_question,
+            selected_answer=saved_answer
+        )
     )
-    await callback.answer()
 
+    await callback.answer()
 
 # ================= FINISH LOCKED =================
 
