@@ -108,6 +108,29 @@ async def process_next(callback: CallbackQuery, state: FSMContext, db: Database)
     # === SPECIAL BLOCK FOR QUESTION 3 ===
     if question_id == 3:
 
+        # 🔥 Если onboarding уже пройден — просто идем на 4 вопрос
+        if await db.is_onboarding_completed(telegram_user_id):
+
+            next_question_id = 4
+
+            saved_answer = await db.get_answer(
+                telegram_user_id,
+                next_question_id
+            )
+
+            await state.update_data(question_id=next_question_id)
+
+            await callback.message.edit_text(
+                build_question_text(next_question_id),
+                reply_markup=survey_keyboard(
+                    next_question_id,
+                    selected_answer=saved_answer
+                )
+            )
+            await callback.answer()
+            return
+
+        # 🚀 Если onboarding еще не пройден — запускаем его
         await state.set_state(FSMSurvey.calculating)
 
         await callback.message.edit_reply_markup(reply_markup=None)
