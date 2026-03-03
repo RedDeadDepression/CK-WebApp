@@ -30,7 +30,7 @@ def build_question_text(question_id: int) -> str:
     )
 
 
-# ================= START SURVEY =================
+# ================= START =================
 
 async def start_survey(callback: CallbackQuery, state: FSMContext, db: Database):
     await state.set_state(FSMSurvey.answering)
@@ -40,22 +40,18 @@ async def start_survey(callback: CallbackQuery, state: FSMContext, db: Database)
 
     await state.update_data(question_id=question_id)
 
-    saved_answer = await db.get_answer(
-        telegram_user_id=telegram_user_id,
-        question_id=question_id
-    )
+    saved_answer = await db.get_answer(telegram_user_id, question_id)
 
     await callback.message.edit_text(
         build_question_text(question_id),
         reply_markup=survey_keyboard(question_id, selected_answer=saved_answer)
     )
-
     await callback.answer()
 
 
 @survey_router.callback_query(F.data == "how_it_works_button_click")
 async def process_how_it_works_button_click(callback: CallbackQuery, db: Database, state: FSMContext):
-    await start_survey(callback=callback, state=state, db=db)
+    await start_survey(callback, state, db)
 
 
 # ================= SAVE ANSWER =================
@@ -68,11 +64,7 @@ async def process_answer(callback: CallbackQuery, state: FSMContext, db: Databas
 
     telegram_user_id = callback.from_user.id
 
-    await db.save_answer(
-        telegram_user_id=telegram_user_id,
-        question_id=question_id,
-        answer_id=answer_id
-    )
+    await db.save_answer(telegram_user_id, question_id, answer_id)
 
     await state.update_data(question_id=question_id)
 
@@ -81,6 +73,16 @@ async def process_answer(callback: CallbackQuery, state: FSMContext, db: Databas
     )
 
     await callback.answer("Answer saved ✅", show_alert=True)
+
+
+# ================= NEXT LOCKED =================
+
+@survey_router.callback_query(F.data == "next_locked", FSMSurvey.answering)
+async def process_next_locked(callback: CallbackQuery):
+    await callback.answer(
+        "Please, select an answer ❗",
+        show_alert=True
+    )
 
 
 # ================= NEXT =================
@@ -92,53 +94,99 @@ async def process_next(callback: CallbackQuery, state: FSMContext, db: Database)
     telegram_user_id = callback.from_user.id
     total_questions = len(LEXICON_QUESTIONS_EN)
 
+    if question_id is None:
+        await callback.answer("Session expired. Use /start", show_alert=True)
+        return
+
+    # Question 3 special logic
     if question_id == 3:
+        if await db.is_onboarding_completed(telegram_user_id):
+            await state.update_data(question_id=4)
+
+            saved_answer = await db.get_answer(telegram_user_id, 4)
+
+            await callback.message.edit_text(
+                build_question_text(4),
+                reply_markup=survey_keyboard(4, selected_answer=saved_answer)
+            )
+            await callback.answer()
+            return
 
         await state.set_state(FSMSurvey.calculating)
+
         await show_progress_bar(callback)
 
         try:
             expenses = await process_calculating(db, telegram_user_id)
         except ValueError:
             await callback.message.edit_text(
-                "⚠️ Some answers are missing. Please restart using /start."
+                "⚠️ Some answers are missing. Please restart with /start."
             )
             await state.clear()
             return
 
         await db.update_daily_cost(
-            telegram_user_id=telegram_user_id,
-            daily_cost=expenses["daily_cost"]
+            telegram_user_id,
+            expenses["daily_cost"]
         )
 
         await callback.message.edit_text(
             text=(
                 f"📊 Wow... Face it.\n\n"
-                f"You've already burned about "
+                f"You've already burned "
                 f"<tg-spoiler>${expenses['expenses_total']:,}</tg-spoiler> 💸\n\n"
-                f"In 10 years you'll burn another "
+                f"In 10 years you'll burn "
                 f"<tg-spoiler>${expenses['expenses_in_future']:,}</tg-spoiler>.\n\n"
-                f"Are you willing to give it to tobacco companies — "
-                f"<u>or keep it for yourself</u>?"
+                f"Keep it for yourself?"
             ),
             reply_markup=keep_it_keyboard
         )
         return
 
-    next_question_id = question_id + 1
 
-    saved_answer = await db.get_answer(
-        telegram_user_id=telegram_user_id,
-        question_id=next_question_id
+# ================= BACK LOCKED =================
+
+@survey_router.callback_query(F.data == "back_locked", FSMSurvey.answering)
+async def process_back_locked(callback: CallbackQuery):
+    await callback.answer(
+        "This is the first question 🙂",
+        show_alert=True
     )
 
-    await state.update_data(question_id=next_question_id)
+
+# ================= BACK =================
+
+@survey_router.callback_query(F.data == "back", FSMSurvey.answering)
+async def process_back(callback: CallbackQuery, state: FSMContext, db: Database):
+    data = await state.get_data()
+    current_question = data.get("question_id", 1)
+
+    if current_question <= 1:
+        await callback.answer()
+        return
+
+    new_question = current_question - 1
+    telegram_user_id = callback.from_user.id
+
+    saved_answer = await db.get_answer(telegram_user_id, new_question)
+
+    await state.update_data(question_id=new_question)
 
     await callback.message.edit_text(
-        build_question_text(next_question_id),
-        reply_markup=survey_keyboard(next_question_id, selected_answer=saved_answer)
+        build_question_text(new_question),
+        reply_markup=survey_keyboard(new_question, selected_answer=saved_answer)
     )
     await callback.answer()
+
+
+# ================= FINISH LOCKED =================
+
+@survey_router.callback_query(F.data == "finish_locked", FSMSurvey.answering)
+async def process_finish_locked(callback: CallbackQuery):
+    await callback.answer(
+        "Please, select an answer ❗",
+        show_alert=True
+    )
 
 
 # ================= FINISH =================
@@ -149,11 +197,7 @@ async def process_finish(callback: CallbackQuery, state: FSMContext, db: Databas
 
     await db.mark_survey_completed(telegram_user_id)
 
-    answer_4 = await db.get_answer(
-        telegram_user_id=telegram_user_id,
-        question_id=4
-    )
-
+    answer_4 = await db.get_answer(telegram_user_id, 4)
     branch = "skip_intro" if answer_4 == 1 else "with_intro"
 
     await state.set_state(FSMSurvey.onboarding)
@@ -161,7 +205,15 @@ async def process_finish(callback: CallbackQuery, state: FSMContext, db: Databas
         onboarding_flow="after_finish",
         onboarding_branch=branch,
         onboarding_step=0,
+        show_loader_after_step=True if branch == "with_intro" else False,
+        loader_text="⏳ Analyzing your answers..."
     )
+
+    if branch == "skip_intro":
+        await show_progress_bar(
+            callback,
+            text="⏳ Analyzing your answers..."
+        )
 
     first_step = ONBOARDING_FLOWS_EN["after_finish"][branch][0]
 
@@ -182,18 +234,46 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
     flow_key = data.get("onboarding_flow")
     branch = data.get("onboarding_branch")
     step = data.get("onboarding_step", 0)
+    show_loader = data.get("show_loader_after_step", False)
+
+    if not flow_key or not branch:
+        await callback.answer("Session expired.", show_alert=True)
+        await state.clear()
+        return
 
     flow = ONBOARDING_FLOWS_EN[flow_key][branch]
+
+    if step == 0 and show_loader:
+        loader_text = data.get("loader_text")
+        await show_progress_bar(callback, text=loader_text)
+        await state.update_data(show_loader_after_step=False)
+
     step += 1
 
     if step >= len(flow):
         await db.mark_onboarding_completed(telegram_user_id)
-        await show_main_menu(callback, state, db=db)
-        return
+
+        if flow_key == "after_q3":
+            await state.set_state(FSMSurvey.answering)
+            await state.update_data(question_id=4)
+
+            saved_answer = await db.get_answer(telegram_user_id, 4)
+
+            await callback.message.edit_text(
+                build_question_text(4),
+                reply_markup=survey_keyboard(4, selected_answer=saved_answer)
+            )
+            await callback.answer()
+            return
+
+        if flow_key == "after_finish":
+            await show_main_menu(callback, state, db=db)
+            return
 
     await state.update_data(onboarding_step=step)
 
     next_step = flow[step]
+
     await callback.message.edit_text(
         next_step["text"],
         reply_markup=onboarding_keyboard(next_step["button"])
