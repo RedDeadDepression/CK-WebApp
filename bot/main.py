@@ -16,14 +16,14 @@ from keyboards.set_menu import set_main_menu
 async def main():
     config: Config = load_config()
 
-    dp["config"] = config
-
     bot = Bot(
         token = config.bot.token,
         default = DefaultBotProperties(parse_mode = ParseMode.HTML)
     )
     storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
+
+    dp["config"] = config
 
     db = Database()
     await db.connect()
