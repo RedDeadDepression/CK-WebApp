@@ -55,7 +55,7 @@ ONBOARDING_FLOWS_EN = {
                         "My creator smoked for 34 years. He tried patches, books, and willpower. "
                         "<b>Nothing worked</b>. Why? Because he was fighting his cravings, not his addiction.",
                 "button": "What's the secret?",
-                "image": "scales.png"
+                "image": "cravings.png"
             },
             {
                 "text": '''The secret is <tg-spoiler>that there is <b>NO universal solution</b></tg-spoiler>. Nicotine is tricky.

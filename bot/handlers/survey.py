@@ -151,8 +151,13 @@ async def process_next(callback: CallbackQuery, state: FSMContext, db: Database)
             expenses["daily_cost"]
         )
 
-        await callback.message.edit_text(
-            text=(
+        photo = FSInputFile("bot/images/scales.png")  # если бот запускается из корня проекта
+
+        await callback.message.delete()
+
+        await callback.message.answer_photo(
+            photo=photo,
+            caption=(
                 f"📊 Wow... Face it.\n\n"
                 f"You've already burned "
                 f"<tg-spoiler>${expenses['expenses_total']:,}</tg-spoiler> 💸\n\n"
@@ -160,8 +165,11 @@ async def process_next(callback: CallbackQuery, state: FSMContext, db: Database)
                 f"<tg-spoiler>${expenses['expenses_in_future']:,}</tg-spoiler>.\n\n"
                 f"Keep it for yourself?"
             ),
-            reply_markup=keep_it_keyboard
+            reply_markup=keep_it_keyboard,
+            parse_mode="HTML"
         )
+
+        await callback.answer()
         return
 
     # === NORMAL NEXT ===
