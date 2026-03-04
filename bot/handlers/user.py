@@ -7,7 +7,7 @@ from database.database import Database
 import keyboards
 from services.common_utils import show_main_menu
 
-from bot.config import Config
+from config import Config
 
 
 user_router = Router()
