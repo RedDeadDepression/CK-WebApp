@@ -30,7 +30,7 @@ async def main():
     dp["db"] = db
 
 
-    await set_main_menu(bot)
+    await set_main_menu(bot, config)
     dp.include_router(handlers.user_router)
     dp.include_router(handlers.survey_router)
 
