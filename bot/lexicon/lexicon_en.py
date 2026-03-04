@@ -50,45 +50,65 @@ LEXICON_ANSWERS_EN = {
 ONBOARDING_FLOWS_EN = {
     "after_q3": {
         "default": [
-            {"text": "🔥 Great attitude. But I know motivation alone isn't enough. "
-            "My creator smoked for 34 years. He tried patches, books, and willpower. "
-            "<b>Nothing worked</b>. Why? Because he was fighting his cravings, not his addiction.",
-            "button": "What's the secret?"
+            {
+                "text": "🔥 Great attitude. But I know motivation alone isn't enough. "
+                        "My creator smoked for 34 years. He tried patches, books, and willpower. "
+                        "<b>Nothing worked</b>. Why? Because he was fighting his cravings, not his addiction.",
+                "button": "What's the secret?",
+                "image": "scales.png"
             },
             {
-            "text": '''The secret is <tg-spoiler>that there is <b>NO universal solution</b></tg-spoiler>. Nicotine is tricky.
-            The <i>"smoke after coffee"</i> trigger and the <i>"smoke when stressed"</i> trigger require <u>different solutions</u>.
-            I know them all. And <u>I'll find the right one for your situation</u>''',
-            "button": "Continue"
+                "text": '''The secret is <tg-spoiler>that there is <b>NO universal solution</b></tg-spoiler>. Nicotine is tricky.
+                        The <i>"smoke after coffee"</i> trigger and the <i>"smoke when stressed"</i> trigger require <u>different solutions</u>.
+                        I know them all. And <u>I'll find the right one for your situation</u>''',
+                "button": "Continue"
             },
             {
-            "text": "The main rule: <b>No guilt</b>. Your setbacks don't matter here. "
-            "Setbacks are part of the journey. We don't start over, we keep going.",
-            "button": "Sounds fair"
+                "text": "The main rule: <b>No guilt</b>. Your setbacks don't matter here. "
+                        "Setbacks are part of the journey. We don't start over, we keep going.",
+                "button": "Sounds fair"
             }
         ]
     },
 
     "after_finish": {
         "skip_intro": [
-            {"text": "Done! Your plan is loaded. Now you have access to <b>all the bot's features</b>.",
-             "button": "How does this work?"},
-            {"text": '''When you feel overwhelmed, <u>press SOS</u> – you will receive personalized techniques and your cravings will disappear.\n
-             When you want to share your success with someone, <u>press My Stats</u>.''',
-             "button": "And one last thing..."},
-            {"text": "📌 <b>Pin this chat</b> so you don't have to search for it in a panic.\nWe're starting right now!",
-             "button": "MENU"}
+            {
+                "text": "Done! Your plan is loaded. Now you have access to <b>all the bot's features</b>.",
+                "button": "How does this work?"
+            },
+            {
+                "text": '''When you feel overwhelmed, <u>press SOS</u> – you will receive personalized techniques and your cravings will disappear.
+                        When you want to share your success with someone, <u>press My Stats</u>.''',
+                "button": "And one last thing..."
+            },
+            {
+                "text": "📌 <b>Pin this chat</b> so you don't have to search for it in a panic.\nWe're starting right now!",
+                "button": "MENU",
+                "image": "pin.png"
+            }
         ],
+
         "with_intro": [
-            {"text": "Great. Seriously, this is good news. 📅 <b>Statistics say it takes between 7 and 13 attempts to quit for good</b>. That means you didn't fail - You just practiced. You're closer to finishing than ever.",
-             "button": "Ready for the finale!"},
-            {"text": "Done! Your plan is loaded. Now you have access to <b>all the bot's features</b>.",
-             "button": "How does this work?"},
-            {"text": '''When you feel overwhelmed, <u>press SOS</u> – you will receive personalized techniques and your cravings will disappear.\n
-             When you want to share your success with someone, <u>press My Stats</u>.''',
-             "button": "And one last thing..."},
-            {"text": "📌 <b>Pin this chat</b> so you don't have to search for it in a panic.\nWe're starting right now!",
-             "button": "MENU"}
+            {
+                "text": "Great. Seriously, this is good news. 📅 <b>Statistics say it takes between 7 and 13 attempts to quit for good</b>. That means you didn't fail - You just practiced. You're closer to finishing than ever.",
+                "button": "Ready for the finale!",
+                "image": "calendar.png"
+            },
+            {
+                "text": "Done! Your plan is loaded. Now you have access to <b>all the bot's features</b>.",
+                "button": "How does this work?"
+            },
+            {
+                "text": '''When you feel overwhelmed, <u>press SOS</u> – you will receive personalized techniques and your cravings will disappear.
+                        When you want to share your success with someone, <u>press My Stats</u>.''',
+                "button": "And one last thing..."
+            },
+            {
+                "text": "📌 <b>Pin this chat</b> so you don't have to search for it in a panic.\nWe're starting right now!",
+                "button": "MENU",
+                "image": "pin.png"
+            }
         ]
     }
 }
