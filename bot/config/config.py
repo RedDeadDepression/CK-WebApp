@@ -1,8 +1,5 @@
 from dataclasses import dataclass
 from environs import Env
-import os
-
-ADMIN_IDS = [int(x) for x in os.getenv("ADMIN_IDS", "").split(",")]
 
 @dataclass
 class TgBot:
