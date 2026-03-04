@@ -1,11 +1,13 @@
 from aiogram import F, Router
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command
 from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
 
 from database.database import Database
 import keyboards
 from services.common_utils import show_main_menu
+
+from config import ADMIN_IDS
 
 
 user_router = Router()
@@ -80,3 +82,14 @@ async def process_my_stats_locked(callback: CallbackQuery):
 @user_router.callback_query(F.data == "back_to_main_menu_button_click")
 async def process_back_to_main_menu_button_click(callback: CallbackQuery, state: FSMContext, db: Database):
     await show_main_menu(callback, state, db=db)
+
+@user_router.message(Command("reset_me"))
+async def reset_me_handler(message: Message, db: Database):
+
+    if message.from_user.id not in ADMIN_IDS:
+        await message.answer("You are not allowed to use this command.")
+        return
+
+    await db.delete_user(message.from_user.id)
+
+    await message.answer("Your data has been reset.")

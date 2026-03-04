@@ -248,6 +248,15 @@ class Database:
             )
             return bool(row["onboarding_completed"]) if row else False
 
+    async def delete_user(self, telegram_user_id: int | str):
+        telegram_user_id = self._normalize_id(telegram_user_id)
+
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                "DELETE FROM user_stats WHERE telegram_user_id = $1",
+                telegram_user_id
+            )
+
     # ================= WINS =================
 
     async def add_win(self, telegram_user_id: int | str):
