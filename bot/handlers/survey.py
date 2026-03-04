@@ -2,7 +2,7 @@ import asyncio
 import random
 
 from aiogram import F, Router
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, FSInputFile
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 
@@ -295,12 +295,26 @@ async def start_onboarding(callback: CallbackQuery, state: FSMContext):
     )
 
     flow = ONBOARDING_FLOWS_EN["after_q3"]["default"]
-    step = flow[0]
+    first_step = flow[0]
 
-    await callback.message.edit_text(
-        step["text"],
-        reply_markup=onboarding_keyboard(step["button"])
-    )
+    image_name = first_step.get("image")
+
+    if image_name:
+        photo = FSInputFile(f"bot/images/{image_name}")
+        await callback.message.delete()
+        await callback.message.answer_photo(
+            photo=photo,
+            caption=first_step["text"],
+            reply_markup=onboarding_keyboard(first_step["button"]),
+            parse_mode="HTML"
+        )
+    else:
+        await callback.message.edit_text(
+            first_step["text"],
+            reply_markup=onboarding_keyboard(first_step["button"]),
+            parse_mode="HTML"
+        )
+
     await callback.answer()
 
 @survey_router.callback_query(F.data == "onboarding_next", FSMSurvey.onboarding)
@@ -327,6 +341,7 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
 
     step += 1
 
+    # === FINISH FLOW ===
     if step >= len(flow):
         await db.mark_onboarding_completed(telegram_user_id)
 
@@ -336,9 +351,12 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
 
             saved_answer = await db.get_answer(telegram_user_id, 4)
 
-            await callback.message.edit_text(
+            await callback.message.delete()
+
+            await callback.message.answer(
                 build_question_text(4),
-                reply_markup=survey_keyboard(4, selected_answer=saved_answer)
+                reply_markup=survey_keyboard(4, selected_answer=saved_answer),
+                parse_mode="HTML"
             )
             await callback.answer()
             return
@@ -347,12 +365,26 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
             await show_main_menu(callback, state, db=db)
             return
 
+    # === CONTINUE FLOW ===
     await state.update_data(onboarding_step=step)
-
     next_step = flow[step]
 
-    await callback.message.edit_text(
-        next_step["text"],
-        reply_markup=onboarding_keyboard(next_step["button"])
-    )
+    image_name = next_step.get("image")
+
+    if image_name:
+        photo = FSInputFile(f"bot/images/{image_name}")
+        await callback.message.delete()
+        await callback.message.answer_photo(
+            photo=photo,
+            caption=next_step["text"],
+            reply_markup=onboarding_keyboard(next_step["button"]),
+            parse_mode="HTML"
+        )
+    else:
+        await callback.message.edit_text(
+            next_step["text"],
+            reply_markup=onboarding_keyboard(next_step["button"]),
+            parse_mode="HTML"
+        )
+
     await callback.answer()
