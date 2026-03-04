@@ -3,10 +3,8 @@ from aiogram.types import BotCommand, BotCommandScopeDefault, BotCommandScopeCha
 
 from lexicon.lexicon_en import LEXICON_COMMANDS_EN
 
-from config import Config
 
-
-async def set_main_menu(bot: Bot, config: Config):
+async def set_main_menu(bot: Bot, config):
 
     main_menu_commands = [
         BotCommand(command=command, description=description)

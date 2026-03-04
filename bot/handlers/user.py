@@ -7,8 +7,6 @@ from database.database import Database
 import keyboards
 from services.common_utils import show_main_menu
 
-from config import Config
-
 
 user_router = Router()
 
@@ -84,7 +82,7 @@ async def process_back_to_main_menu_button_click(callback: CallbackQuery, state:
     await show_main_menu(callback, state, db=db)
 
 @user_router.message(Command("reset_me"))
-async def reset_me_handler(message: Message, db: Database, config: Config):
+async def reset_me_handler(message: Message, db: Database, config):
 
     if message.from_user.id not in config.bot.admin_ids:
         await message.answer("You are not allowed to use this command.")
