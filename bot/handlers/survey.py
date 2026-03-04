@@ -52,7 +52,7 @@ async def start_survey(callback: CallbackQuery, state: FSMContext, db: Database)
 @survey_router.callback_query(F.data == "how_it_works_button_click")
 async def process_how_it_works_button_click(callback: CallbackQuery, db: Database, state: FSMContext):
 
-    photo = FSInputFile("bot/images/goals.png")  # если бот запускается из корня проекта
+    photo = FSInputFile("images/goals.png")  # если бот запускается из корня проекта
 
     await callback.message.delete()
 
@@ -174,7 +174,7 @@ async def process_next(callback: CallbackQuery, state: FSMContext, db: Database)
             expenses["daily_cost"]
         )
 
-        photo = FSInputFile("bot/images/scales.png")  # если бот запускается из корня проекта
+        photo = FSInputFile("images/scales.png")  # если бот запускается из корня проекта
 
         await callback.message.delete()
 
@@ -331,7 +331,7 @@ async def start_onboarding(callback: CallbackQuery, state: FSMContext):
     image_name = first_step.get("image")
 
     if image_name:
-        photo = FSInputFile(f"bot/images/{image_name}")
+        photo = FSInputFile(f"images/{image_name}")
         await callback.message.delete()
         await callback.message.answer_photo(
             photo=photo,
@@ -403,7 +403,7 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
     image_name = next_step.get("image")
 
     if image_name:
-        photo = FSInputFile(f"bot/images/{image_name}")
+        photo = FSInputFile(f"images/{image_name}")
         await callback.message.delete()
         await callback.message.answer_photo(
             photo=photo,
