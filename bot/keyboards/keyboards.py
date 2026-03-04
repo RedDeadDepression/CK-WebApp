@@ -51,6 +51,19 @@ def get_main_menu_keyboard(is_survey_completed: bool):
 
     return main_menu_keyboard_builder.as_markup()
 
+ # Get Started keyboard
+get_started_keyboard_builder = InlineKeyboardBuilder()
+get_started_keyboard_buttons = [
+    InlineKeyboardButton(
+        text = "GET STARTED ❗",
+        callback_data = "get_started_button_click"
+    )
+]
+
+get_started_keyboard_builder.row(*get_started_keyboard_buttons, width = 1)
+
+get_started_keyboard = get_started_keyboard_builder.as_markup()
+
  # Survey keyboard
 def survey_keyboard(question_id: int, selected_answer: int | None = None):
     survey_keyboard_builder = InlineKeyboardBuilder()

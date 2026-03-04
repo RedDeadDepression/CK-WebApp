@@ -8,7 +8,7 @@ from aiogram.fsm.context import FSMContext
 
 from lexicon.lexicon_en import LEXICON_QUESTIONS_EN, ONBOARDING_FLOWS_EN
 from database.database import Database
-from keyboards.keyboards import survey_keyboard, keep_it_keyboard, onboarding_keyboard
+from keyboards.keyboards import survey_keyboard, keep_it_keyboard, onboarding_keyboard, get_started_keyboard
 from services.survey_utils import process_calculating, show_progress_bar
 from services.common_utils import show_main_menu
 
@@ -51,6 +51,29 @@ async def start_survey(callback: CallbackQuery, state: FSMContext, db: Database)
 
 @survey_router.callback_query(F.data == "how_it_works_button_click")
 async def process_how_it_works_button_click(callback: CallbackQuery, db: Database, state: FSMContext):
+
+    photo = FSInputFile("bot/images/goals.png")  # если бот запускается из корня проекта
+
+    await callback.message.delete()
+
+    await callback.message.answer_photo(
+        photo=photo,
+        caption=(
+            "I have two goals 🏆.\n"
+            "🎯 <u>First:</u> To help you quit smoking without suffering or forcing yourself.\n"
+            "🎯 <u>Second:</u> To be there for you when you're really struggling.\n\n"
+            "To activate me 100%, I need to get to know you a little better.\n"
+            "<i>It will only take a minute.</i>"
+        ),
+        reply_markup=get_started_keyboard,
+        parse_mode="HTML"
+    )
+
+    await callback.answer()
+
+
+@survey_router.callback_query(F.data == "get_started_button_click")
+async def process_get_started_button_click(callback: CallbackQuery, db: Database, state: FSMContext):
     await start_survey(callback, state, db)
 
 

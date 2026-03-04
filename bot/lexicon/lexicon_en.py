@@ -1,11 +1,3 @@
-LEXICON_EN = {
-    "/start": "I have two goals 🏆.\n"
-    "🎯 <u>First:</u> To help you quit smoking without suffering or forcing yourself.\n"
-    "🎯 <u>Second:</u> To be there for you when you're really struggling.\n\n"
-    "To activate me 100%, I need to get to know you a little better.\n"
-    "<i>It will only take a minute.</i>"
-}
-
 LEXICON_COMMANDS_EN = {
     "/start": "Restart the bot"
 }
