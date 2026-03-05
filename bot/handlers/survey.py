@@ -288,6 +288,7 @@ async def process_finish_locked(callback: CallbackQuery):
 
 @survey_router.callback_query(F.data == "finish", FSMSurvey.answering)
 async def process_finish(callback: CallbackQuery, state: FSMContext, db: Database):
+
     telegram_user_id = callback.from_user.id
 
     await db.mark_survey_completed(telegram_user_id)
@@ -296,6 +297,7 @@ async def process_finish(callback: CallbackQuery, state: FSMContext, db: Databas
     branch = "skip_intro" if answer_4 == 1 else "with_intro"
 
     await state.set_state(FSMSurvey.onboarding)
+
     await state.update_data(
         onboarding_flow="after_finish",
         onboarding_branch=branch,
@@ -312,10 +314,13 @@ async def process_finish(callback: CallbackQuery, state: FSMContext, db: Databas
 
     first_step = ONBOARDING_FLOWS_EN["after_finish"][branch][0]
 
-    await callback.message.edit_text(
-        first_step["text"],
-        reply_markup=onboarding_keyboard(first_step["button"])
+    await send_step(
+        callback,
+        text=first_step["text"],
+        button=first_step["button"],
+        image_name=first_step.get("image")
     )
+
     await callback.answer()
 
 
