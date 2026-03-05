@@ -425,22 +425,11 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
     await state.update_data(onboarding_step=step)
     next_step = flow[step]
 
-    image_name = next_step.get("image")
-
-    if image_name:
-        photo = FSInputFile(f"images/{image_name}")
-        await callback.message.delete()
-        await callback.message.answer_photo(
-            photo=photo,
-            caption=next_step["text"],
-            reply_markup=onboarding_keyboard(next_step["button"]),
-            parse_mode="HTML"
-        )
-    else:
-        await callback.message.edit_text(
-            next_step["text"],
-            reply_markup=onboarding_keyboard(next_step["button"]),
-            parse_mode="HTML"
+    await send_step(
+        callback,
+        text=next_step["text"],
+        button=next_step["button"],
+        image_name=next_step.get("image")
         )
 
     await callback.answer()
