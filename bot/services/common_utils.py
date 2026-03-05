@@ -23,30 +23,35 @@ async def show_main_menu(
 
     message = callback.message
 
-    # если текущее сообщение фото или caption
-    if message.photo or message.caption:
-        await message.delete()
+    try:
+        # если сообщение обычный текст
+        if message.text:
+            await message.edit_text(
+                text,
+                reply_markup=get_main_menu_keyboard(survey_status)
+            )
+
+        # если сообщение фото / caption
+        else:
+            await message.delete()
+
+            await callback.bot.send_message(
+                chat_id=message.chat.id,
+                text=text,
+                reply_markup=get_main_menu_keyboard(survey_status)
+            )
+
+    except Exception:
+        # fallback если edit_text не сработал
+        try:
+            await message.delete()
+        except:
+            pass
 
         await callback.bot.send_message(
             chat_id=message.chat.id,
             text=text,
             reply_markup=get_main_menu_keyboard(survey_status)
         )
-
-    # если обычное текстовое сообщение
-    else:
-        try:
-            await message.edit_text(
-                text,
-                reply_markup=get_main_menu_keyboard(survey_status)
-            )
-        except Exception:
-            # fallback если edit невозможен
-            await message.delete()
-            await callback.bot.send_message(
-                chat_id=message.chat.id,
-                text=text,
-                reply_markup=get_main_menu_keyboard(survey_status)
-            )
 
     await callback.answer()
