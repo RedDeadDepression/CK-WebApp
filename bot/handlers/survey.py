@@ -323,6 +323,7 @@ async def send_step(callback: CallbackQuery, text: str, button: str, image_name:
 
     message = callback.message
 
+    # --- STEP WITH IMAGE ---
     if image_name:
         photo = FSInputFile(f"images/{image_name}")
 
@@ -336,7 +337,8 @@ async def send_step(callback: CallbackQuery, text: str, button: str, image_name:
         )
         return
 
-    if message.photo:
+    # --- IF PREVIOUS MESSAGE WAS PHOTO ---
+    if message.photo or message.caption:
         await message.delete()
 
         await message.answer(
@@ -346,11 +348,20 @@ async def send_step(callback: CallbackQuery, text: str, button: str, image_name:
         )
         return
 
-    await message.edit_text(
-        text,
-        reply_markup=onboarding_keyboard(button),
-        parse_mode="HTML"
-    )
+    # --- SAFE EDIT ---
+    try:
+        await message.edit_text(
+            text,
+            reply_markup=onboarding_keyboard(button),
+            parse_mode="HTML"
+        )
+    except Exception:
+        await message.delete()
+        await message.answer(
+            text,
+            reply_markup=onboarding_keyboard(button),
+            parse_mode="HTML"
+        )
 
 @survey_router.callback_query(F.data == "keep_it_button_click", FSMSurvey.calculating)
 async def start_onboarding(callback: CallbackQuery, state: FSMContext):
