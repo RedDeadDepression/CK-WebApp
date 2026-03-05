@@ -396,6 +396,7 @@ async def start_onboarding(callback: CallbackQuery, state: FSMContext):
 
 @survey_router.callback_query(F.data == "onboarding_next", FSMSurvey.onboarding)
 async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Database):
+
     telegram_user_id = callback.from_user.id
     data = await state.get_data()
 
@@ -411,18 +412,34 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
 
     flow = ONBOARDING_FLOWS_EN[flow_key][branch]
 
+    # --- FIX LOADER ---
     if step == 0 and show_loader:
+
         loader_text = data.get("loader_text")
+        message = callback.message
+
+        # если сообщение фото
+        if message.photo or message.caption:
+            await message.delete()
+
+            await callback.bot.send_message(
+                chat_id=message.chat.id,
+                text=loader_text
+            )
+
         await show_progress_bar(callback, text=loader_text)
+
         await state.update_data(show_loader_after_step=False)
 
     step += 1
 
     # === FINISH FLOW ===
     if step >= len(flow):
+
         await db.mark_onboarding_completed(telegram_user_id)
 
         if flow_key == "after_q3":
+
             await state.set_state(FSMSurvey.answering)
             await state.update_data(question_id=4)
 
@@ -436,6 +453,7 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
                 reply_markup=survey_keyboard(4, selected_answer=saved_answer),
                 parse_mode="HTML"
             )
+
             await callback.answer()
             return
 
@@ -445,6 +463,7 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
 
     # === CONTINUE FLOW ===
     await state.update_data(onboarding_step=step)
+
     next_step = flow[step]
     image_name = next_step.get("image")
 
@@ -453,6 +472,6 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
         text=next_step["text"],
         button=next_step["button"],
         image_name=image_name
-        )
+    )
 
     await callback.answer()
