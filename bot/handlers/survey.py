@@ -42,10 +42,15 @@ async def start_survey(callback: CallbackQuery, state: FSMContext, db: Database)
 
     saved_answer = await db.get_answer(telegram_user_id, question_id)
 
-    await callback.message.edit_text(
-        build_question_text(question_id),
+    # удаляем сообщение (которое было с фото)
+    await callback.message.delete()
+
+    # отправляем новое текстовое сообщение
+    await callback.message.answer(
+        text=build_question_text(question_id),
         reply_markup=survey_keyboard(question_id, selected_answer=saved_answer)
     )
+
     await callback.answer()
 
 
