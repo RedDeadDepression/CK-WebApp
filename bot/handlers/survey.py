@@ -314,6 +314,7 @@ async def process_finish(callback: CallbackQuery, state: FSMContext, db: Databas
 
     first_step = ONBOARDING_FLOWS_EN["after_finish"][branch][0]
 
+    # ✅ используем универсальный sender
     await send_step(
         callback,
         text=first_step["text"],
