@@ -323,7 +323,6 @@ async def send_step(callback: CallbackQuery, text: str, button: str, image_name:
 
     message = callback.message
 
-    # --- STEP WITH IMAGE ---
     if image_name:
         photo = FSInputFile(f"images/{image_name}")
 
@@ -337,9 +336,7 @@ async def send_step(callback: CallbackQuery, text: str, button: str, image_name:
         )
         return
 
-    # --- STEP WITHOUT IMAGE ---
-    # если текущее сообщение было фото (caption)
-    if message.photo or message.caption:
+    if message.photo:
         await message.delete()
 
         await message.answer(
@@ -349,7 +346,6 @@ async def send_step(callback: CallbackQuery, text: str, button: str, image_name:
         )
         return
 
-    # если сообщение обычный текст
     await message.edit_text(
         text,
         reply_markup=onboarding_keyboard(button),
@@ -416,8 +412,9 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
 
             await callback.message.delete()
 
-            await callback.message.answer(
-                build_question_text(4),
+            await callback.bot.send_message(
+                chat_id=callback.message.chat.id,
+                text=build_question_text(4),
                 reply_markup=survey_keyboard(4, selected_answer=saved_answer),
                 parse_mode="HTML"
             )
@@ -431,12 +428,13 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
     # === CONTINUE FLOW ===
     await state.update_data(onboarding_step=step)
     next_step = flow[step]
+    image_name = next_step.get("image")
 
     await send_step(
         callback,
         text=next_step["text"],
         button=next_step["button"],
-        image_name=next_step.get("image")
+        image_name=image_name
         )
 
     await callback.answer()
