@@ -351,6 +351,7 @@ async def send_step(callback: CallbackQuery, text: str, button: str, image_name:
 
 @survey_router.callback_query(F.data == "keep_it_button_click", FSMSurvey.calculating)
 async def start_onboarding(callback: CallbackQuery, state: FSMContext):
+
     await state.set_state(FSMSurvey.onboarding)
 
     await state.update_data(
@@ -363,23 +364,12 @@ async def start_onboarding(callback: CallbackQuery, state: FSMContext):
     flow = ONBOARDING_FLOWS_EN["after_q3"]["default"]
     first_step = flow[0]
 
-    image_name = first_step.get("image")
-
-    if image_name:
-        photo = FSInputFile(f"images/{image_name}")
-        await callback.message.delete()
-        await callback.message.answer_photo(
-            photo=photo,
-            caption=first_step["text"],
-            reply_markup=onboarding_keyboard(first_step["button"]),
-            parse_mode="HTML"
-        )
-    else:
-        await callback.message.edit_text(
-            first_step["text"],
-            reply_markup=onboarding_keyboard(first_step["button"]),
-            parse_mode="HTML"
-        )
+    await send_step(
+        callback,
+        text=first_step["text"],
+        button=first_step["button"],
+        image_name=first_step.get("image")
+    )
 
     await callback.answer()
 
