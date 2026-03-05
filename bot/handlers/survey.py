@@ -5,6 +5,7 @@ from aiogram import F, Router
 from aiogram.types import CallbackQuery, FSInputFile
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
+from aiogram.exceptions import TelegramBadRequest
 
 from lexicon.lexicon_en import LEXICON_QUESTIONS_EN, ONBOARDING_FLOWS_EN
 from database.database import Database
@@ -355,7 +356,7 @@ async def send_step(callback: CallbackQuery, text: str, button: str, image_name:
             reply_markup=onboarding_keyboard(button),
             parse_mode="HTML"
         )
-    except Exception:
+    except TelegramBadRequest:
         await message.delete()
         await message.answer(
             text,
