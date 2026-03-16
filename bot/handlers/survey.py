@@ -412,11 +412,17 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
 
     flow = ONBOARDING_FLOWS_EN[flow_key][branch]
 
+    # === LOADER ===
     if step == 0 and show_loader:
 
         loader_text = data.get("loader_text")
 
-        await show_progress_bar(callback, text=loader_text)
+        loader_message = await show_progress_bar(
+            callback,
+            text=loader_text
+        )
+
+        await loader_message.delete()
 
         await state.update_data(show_loader_after_step=False)
 

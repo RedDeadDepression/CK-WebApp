@@ -2,7 +2,7 @@ import re
 import asyncio
 import random
 
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, Message
 from lexicon.lexicon_en import LEXICON_ANSWERS_EN
 from typing import Dict
 
@@ -60,38 +60,23 @@ async def show_progress_bar(
         min_delay: float = 0.1,
         max_delay: float = 0.5,
         text: str = "⏳ Calculating your expenses... Please, wait a moment"
-) -> None:
-
-    message = callback.message
-
-    # --- FIX: если сообщение фото ---
-    if message.photo or message.caption:
-        await message.delete()
-
-        msg = await callback.bot.send_message(
-            chat_id=message.chat.id,
-            text=f"{text}\n<code>[{'░'*progress_bar_steps}]   0%</code>",
-            parse_mode="HTML"
-        )
-
-    else:
-        msg = await message.edit_text(
-            f"{text}\n<code>[{'░'*progress_bar_steps}]   0%</code>",
-            parse_mode="HTML"
-        )
+) -> Message:
 
     progress_bar_animation = "░" * progress_bar_steps
     animation_one, animation_two = "█", "░"
 
+    msg = await callback.message.edit_text(
+        f"{text}\n<code>[{progress_bar_animation}]   0%</code>",
+        parse_mode="HTML"
+    )
+
     current_percent = 0
 
     for step in range(1, progress_bar_steps + 1):
-
         await asyncio.sleep(random.uniform(min_delay, max_delay))
 
         ideal_percent = int((step / progress_bar_steps) * 100)
         delta = random.randint(-5, 5)
-
         percent = max(current_percent, min(ideal_percent + delta, 100))
 
         if percent == current_percent:
@@ -100,7 +85,6 @@ async def show_progress_bar(
         current_percent = percent
 
         filled_segments = int(progress_bar_steps * (percent / 100))
-
         progress_visual = (
             animation_one * filled_segments +
             animation_two * (progress_bar_steps - filled_segments)
@@ -116,3 +100,5 @@ async def show_progress_bar(
             f"{text}\n<code>[{animation_one * progress_bar_steps}] 100%</code>",
             parse_mode="HTML"
         )
+
+    return msg
