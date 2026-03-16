@@ -412,20 +412,9 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
 
     flow = ONBOARDING_FLOWS_EN[flow_key][branch]
 
-    # --- FIX LOADER ---
     if step == 0 and show_loader:
 
         loader_text = data.get("loader_text")
-        message = callback.message
-
-        # если сообщение фото
-        if message.photo or message.caption:
-            await message.delete()
-
-            await callback.bot.send_message(
-                chat_id=message.chat.id,
-                text=loader_text
-            )
 
         await show_progress_bar(callback, text=loader_text)
 
