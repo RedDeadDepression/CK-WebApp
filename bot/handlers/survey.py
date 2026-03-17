@@ -417,16 +417,11 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
 
         loader_text = data.get("loader_text")
 
-        loader_message = await show_progress_bar(
-            callback,
-            text=loader_text
-        )
+        msg = await show_progress_bar(callback, text=loader_text)
 
-        await loader_message.delete()
+        await msg.delete()
 
         await state.update_data(show_loader_after_step=False)
-
-    step += 1
 
     # === FINISH FLOW ===
     if step >= len(flow):

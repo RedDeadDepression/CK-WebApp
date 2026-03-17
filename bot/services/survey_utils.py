@@ -59,14 +59,14 @@ async def show_progress_bar(
         progress_bar_steps: int = 15,
         min_delay: float = 0.1,
         max_delay: float = 0.5,
-        text: str = "⏳ Calculating your expenses... Please, wait a moment"
-) -> Message:
+        text: str = "⏳ Calculating..."
+):
 
     progress_bar_animation = "░" * progress_bar_steps
-    animation_one, animation_two = "█", "░"
 
-    msg = await callback.message.edit_text(
-        f"{text}\n<code>[{progress_bar_animation}]   0%</code>",
+    msg = await callback.bot.send_message(
+        chat_id=callback.message.chat.id,
+        text=f"{text}\n<code>[{progress_bar_animation}]   0%</code>",
         parse_mode="HTML"
     )
 
@@ -75,29 +75,18 @@ async def show_progress_bar(
     for step in range(1, progress_bar_steps + 1):
         await asyncio.sleep(random.uniform(min_delay, max_delay))
 
-        ideal_percent = int((step / progress_bar_steps) * 100)
-        delta = random.randint(-5, 5)
-        percent = max(current_percent, min(ideal_percent + delta, 100))
+        percent = int((step / progress_bar_steps) * 100)
 
         if percent == current_percent:
             continue
 
         current_percent = percent
 
-        filled_segments = int(progress_bar_steps * (percent / 100))
-        progress_visual = (
-            animation_one * filled_segments +
-            animation_two * (progress_bar_steps - filled_segments)
-        )
+        filled = int(progress_bar_steps * (percent / 100))
+        progress_visual = "█" * filled + "░" * (progress_bar_steps - filled)
 
         await msg.edit_text(
             f"{text}\n<code>[{progress_visual}] {percent:3d}%</code>",
-            parse_mode="HTML"
-        )
-
-    if current_percent < 100:
-        await msg.edit_text(
-            f"{text}\n<code>[{animation_one * progress_bar_steps}] 100%</code>",
             parse_mode="HTML"
         )
 
