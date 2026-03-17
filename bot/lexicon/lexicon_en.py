@@ -84,8 +84,7 @@ ONBOARDING_FLOWS_EN = {
         "with_intro": [
             {
                 "text": "Great. Seriously, this is good news. 📅 <b>Statistics say it takes between 7 and 13 attempts to quit for good</b>. That means you didn't fail - You just practiced. You're closer to finishing than ever.",
-                "button": "Ready for the finale!",
-                "image": "calendar.png"
+                "button": "Ready for the finale!"
             },
             {
                 "text": "Done! Your plan is loaded. Now you have access to <b>all the bot's features</b>.",
