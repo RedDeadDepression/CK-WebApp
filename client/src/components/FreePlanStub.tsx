@@ -3,9 +3,48 @@ import { Sparkles, Check } from "lucide-react";
 import { SmartTimer } from "./SmartTimer";
 
 export function FreePlanStub() {
-  const handleBuyClick = () => {
-    console.log("Buy with Telegram Stars clicked");
-  };
+  const handleBuyClick = async () => {
+  try {
+    const tg = window.Telegram?.WebApp;
+
+    if (!tg) {
+      console.error("Telegram WebApp not found");
+      return;
+    }
+
+    const userId = tg.initDataUnsafe?.user?.id;
+
+    if (!userId) {
+      console.error("No Telegram user");
+      return;
+    }
+
+    console.log("Buying VIP...");
+
+    const res = await fetch("http://127.0.0.1:8000/create-invoice", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        user_id: userId
+      })
+    });
+
+    const data = await res.json();
+
+    console.log("Invoice link:", data.invoice_link);
+
+    if (data.invoice_link) {
+      tg.openInvoice(data.invoice_link);
+    } else {
+      console.error("No invoice link:", data);
+    }
+
+  } catch (err) {
+    console.error("Payment error:", err);
+  }
+};
 
   return (
     <motion.div
@@ -17,7 +56,7 @@ export function FreePlanStub() {
     >
       {/* Изменено: space-y-4 (вместо 10) — это сильно сожмет вертикальные дыры */}
       <div className="max-w-md w-full space-y-4 flex flex-col">
-        
+
         {/* Заголовки: стали меньше */}
         <div className="text-center space-y-1 mt-2">
           <h1 className="text-2xl font-black text-foreground tracking-tight">
