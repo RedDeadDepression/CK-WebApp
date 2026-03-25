@@ -1,9 +1,18 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from aiogram import Bot
 from config.config import load_config
 import uuid
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 config = load_config()
 bot = Bot(token=config.bot.token)
@@ -23,7 +32,7 @@ async def create_invoice(data: dict):
         description="Unlock all strategies",
         payload=payload,
         currency="XTR",
-        prices=[{"label": "VIP", "amount": 500}]
+        prices=[{"label": "VIP", "amount": 1}]
     )
 
     return {"invoice_link": link}

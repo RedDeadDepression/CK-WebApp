@@ -21,7 +21,7 @@ def get_main_menu_keyboard(is_survey_completed: bool):
         InlineKeyboardButton(
             text = "🚭 SOS / I want to smoke",
             web_app = WebAppInfo(
-                url = "https://ck-web.app" # ЗАМЕНИТЬ
+                url = "https://streamy-yaritza-scholarly.ngrok-free.dev" # ЗАМЕНИТЬ
             )
         )
     )
