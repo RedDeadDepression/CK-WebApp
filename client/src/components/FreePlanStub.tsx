@@ -21,7 +21,7 @@ export function FreePlanStub() {
 
     console.log("Buying VIP...");
 
-    const res = await fetch("https://streamy-yaritza-scholarly.ngrok-free.dev/create-invoice", {
+    const res = await fetch("/create-invoice", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
