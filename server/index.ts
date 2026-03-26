@@ -23,6 +23,28 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 
+/**
+ * ========================= ПРОКСИ ДЛЯ ОПЛАТЫ =========================
+ */
+app.post("/create-invoice", async (req, res) => {
+  try {
+    const response = await fetch("http://bot:8000/create-invoice", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(req.body),
+    });
+
+    const data = await response.json();
+
+    res.json(data);
+  } catch (error) {
+    console.error("Proxy error:", error);
+    res.status(500).json({ error: "Failed to create invoice" });
+  }
+});
+
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
