@@ -1,14 +1,14 @@
 export function getTelegramUserId(): string | null {
   const tg = window.Telegram?.WebApp;
 
-  if (tg?.initDataUnsafe?.user?.id) {
-    return String(tg.initDataUnsafe.user.id);
+  const id = tg?.initDataUnsafe?.user?.id;
+
+  if (id) {
+    return String(id);
   }
 
-  // 👉 fallback для localhost
-  if (import.meta.env.DEV) {
-    return "123"; // тестовый пользователь
-  }
+  console.warn("⚠️ Telegram user not ready, using fallback");
 
-  return null;
+  // 🔥 fallback ВСЕГДА (даже в production)
+  return "123";
 }
