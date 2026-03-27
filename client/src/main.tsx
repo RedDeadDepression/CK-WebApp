@@ -8,12 +8,33 @@ declare global {
     }
 }
 
+/**
+ * 🔥 ГЛОБАЛЬНЫЙ ЛОВЕЦ ОШИБОК (очень важно для Telegram)
+ */
+window.onerror = function (message, source, lineno, colno, error) {
+    console.error("GLOBAL ERROR:", message, error);
+};
+
 const tg = window.Telegram?.WebApp;
 
 if (tg) {
-    tg.ready();
-    tg.expand();
-    console.log("Telegram WebApp detected", tg.initDataUnsafe);
+    try {
+        tg.ready();
+        tg.expand();
+
+        console.log("Telegram WebApp detected");
+        console.log("INIT DATA:", tg.initDataUnsafe);
+
+        /**
+         * 🔥 ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА
+         */
+        if (!tg.initDataUnsafe || !tg.initDataUnsafe.user) {
+            console.warn("⚠️ No user in initDataUnsafe");
+        }
+
+    } catch (e) {
+        console.error("TG INIT ERROR:", e);
+    }
 } else {
     console.log("Running outside Telegram — using DEV mock");
 
@@ -40,5 +61,7 @@ const root = document.getElementById("root");
 if (!root) {
     throw new Error("Root element not found");
 }
+
+console.log("🚀 App rendering...");
 
 createRoot(root).render(<App />);
