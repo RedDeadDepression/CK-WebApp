@@ -452,9 +452,9 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
             return
 
     # === CONTINUE FLOW ===
-    await state.update_data(onboarding_step=step)
-
     next_step = flow[step]
+
+    await state.update_data(onboarding_step=step + 1)
     image_name = next_step.get("image")
 
     await send_step(
