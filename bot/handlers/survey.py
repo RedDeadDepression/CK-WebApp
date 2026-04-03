@@ -406,30 +406,32 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
     show_loader = data.get("show_loader_after_step", False)
 
     if not flow_key or not branch:
-        await callback.answer("Session expired.", show_alert=True)
+        await callback.message.answer("⚠️ Session expired. Please restart with /start.")
         await state.clear()
+        await callback.answer()
         return
 
     flow = ONBOARDING_FLOWS_EN[flow_key][branch]
 
-    # === LOADER ===
-    if step == 0 and show_loader:
-
-        loader_text = data.get("loader_text")
+    # ========================= LOADER =========================
+    if show_loader:  # более строгая проверка
+        loader_text = data.get("loader_text", "⏳ Calculating...")
 
         msg = await show_progress_bar(callback, text=loader_text)
-
         await msg.delete()
 
+        # Сбрасываем флаг, чтобы loader не запускался повторно
         await state.update_data(show_loader_after_step=False)
 
-    # === FINISH FLOW ===
-    if step >= len(flow):
+        # Обновляем локальные данные для дальнейшей логики
+        data = await state.get_data()
+        step = data.get("onboarding_step", step)
 
+    # ========================= FINISH FLOW =========================
+    if step >= len(flow):
         await db.mark_onboarding_completed(telegram_user_id)
 
         if flow_key == "after_q3":
-
             await state.set_state(FSMSurvey.answering)
             await state.update_data(question_id=4)
 
@@ -443,15 +445,15 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
                 reply_markup=survey_keyboard(4, selected_answer=saved_answer),
                 parse_mode="HTML"
             )
-
             await callback.answer()
             return
 
         if flow_key == "after_finish":
             await show_main_menu(callback, state, db=db)
+            await callback.answer()
             return
 
-    # === CONTINUE FLOW ===
+    # ========================= CONTINUE FLOW =========================
     next_step = flow[step] if step < len(flow) else None
 
     if not next_step:
@@ -462,6 +464,7 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
         await callback.answer()
         return
 
+    # ✅ увеличиваем step после проверки, чтобы не было цикла
     await state.update_data(onboarding_step=step + 1)
 
     image_name = next_step.get("image")
