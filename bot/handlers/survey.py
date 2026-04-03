@@ -452,9 +452,18 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
             return
 
     # === CONTINUE FLOW ===
-    next_step = flow[step]
+    next_step = flow[step] if step < len(flow) else None
+
+    if not next_step:
+        await state.clear()
+        await callback.message.answer(
+            "⚠️ Something went wrong. Please restart with /start."
+        )
+        await callback.answer()
+        return
 
     await state.update_data(onboarding_step=step + 1)
+
     image_name = next_step.get("image")
 
     await send_step(
