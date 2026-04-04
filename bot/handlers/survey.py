@@ -34,6 +34,9 @@ def build_question_text(question_id: int) -> str:
 # ================= START =================
 
 async def start_survey(callback: CallbackQuery, state: FSMContext, db: Database):
+
+    await callback.answer()
+
     await state.set_state(FSMSurvey.answering)
 
     question_id = 1
@@ -52,7 +55,6 @@ async def start_survey(callback: CallbackQuery, state: FSMContext, db: Database)
         reply_markup=survey_keyboard(question_id, selected_answer=saved_answer)
     )
 
-    await callback.answer()
 
 
 @survey_router.callback_query(F.data == "how_it_works_button_click")
@@ -164,7 +166,9 @@ async def process_next(callback: CallbackQuery, state: FSMContext, db: Database)
 
         await callback.message.edit_reply_markup(reply_markup=None)
 
-        await show_progress_bar(callback)
+        msg = await show_progress_bar(callback)
+
+        await msg.delete()
 
         try:
             expenses = await process_calculating(db, telegram_user_id)
@@ -173,6 +177,7 @@ async def process_next(callback: CallbackQuery, state: FSMContext, db: Database)
                 "⚠️ Some answers are missing. Please restart with /start."
             )
             await state.clear()
+            await callback.answer()
             return
 
         await db.update_daily_cost(
@@ -289,6 +294,8 @@ async def process_finish_locked(callback: CallbackQuery):
 @survey_router.callback_query(F.data == "finish", FSMSurvey.answering)
 async def process_finish(callback: CallbackQuery, state: FSMContext, db: Database):
 
+    await callback.answer()
+
     telegram_user_id = callback.from_user.id
 
     await db.mark_survey_completed(telegram_user_id)
@@ -307,10 +314,11 @@ async def process_finish(callback: CallbackQuery, state: FSMContext, db: Databas
     )
 
     if branch == "skip_intro":
-        await show_progress_bar(
+        msg = await show_progress_bar(
             callback,
             text="⏳ Analyzing your answers..."
         )
+        await msg.delete()
 
     first_step = ONBOARDING_FLOWS_EN["after_finish"][branch][0]
 
@@ -321,8 +329,6 @@ async def process_finish(callback: CallbackQuery, state: FSMContext, db: Databas
         button=first_step["button"],
         image_name=first_step.get("image")
     )
-
-    await callback.answer()
 
 
 # ================= ONBOARDING =================
@@ -373,6 +379,8 @@ async def send_step(callback: CallbackQuery, text: str, button: str, image_name:
 @survey_router.callback_query(F.data == "keep_it_button_click", FSMSurvey.calculating)
 async def start_onboarding(callback: CallbackQuery, state: FSMContext):
 
+    await callback.answer()
+
     await state.set_state(FSMSurvey.onboarding)
 
     await state.update_data(
@@ -392,10 +400,11 @@ async def start_onboarding(callback: CallbackQuery, state: FSMContext):
         image_name=first_step.get("image")
     )
 
-    await callback.answer()
 
 @survey_router.callback_query(F.data == "onboarding_next", FSMSurvey.onboarding)
 async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Database):
+
+    await callback.answer()
 
     telegram_user_id = callback.from_user.id
     data = await state.get_data()
@@ -408,27 +417,13 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
     if not flow_key or not branch:
         await callback.message.answer("⚠️ Session expired. Please restart with /start.")
         await state.clear()
-        await callback.answer()
         return
 
     flow = ONBOARDING_FLOWS_EN[flow_key][branch]
 
-    # ========================= LOADER =========================
-    if show_loader:  # более строгая проверка
-        loader_text = data.get("loader_text", "⏳ Calculating...")
-
-        msg = await show_progress_bar(callback, text=loader_text)
-        await msg.delete()
-
-        # Сбрасываем флаг, чтобы loader не запускался повторно
-        await state.update_data(show_loader_after_step=False)
-
-        # Обновляем локальные данные для дальнейшей логики
-        data = await state.get_data()
-        step = data.get("onboarding_step", step)
-
     # ========================= FINISH FLOW =========================
     if step >= len(flow):
+
         await db.mark_onboarding_completed(telegram_user_id)
 
         if flow_key == "after_q3":
@@ -445,35 +440,29 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
                 reply_markup=survey_keyboard(4, selected_answer=saved_answer),
                 parse_mode="HTML"
             )
-            await callback.answer()
             return
 
         if flow_key == "after_finish":
             await show_main_menu(callback, state, db=db)
-            await callback.answer()
             return
 
-    # ========================= CONTINUE FLOW =========================
-    next_step = flow[step] if step < len(flow) else None
+    # ========================= LOADER =========================
+    if show_loader:
+        loader_text = data.get("loader_text", "⏳ Calculating...")
 
-    if not next_step:
-        await state.clear()
-        await callback.message.answer(
-            "⚠️ Something went wrong. Please restart with /start."
-        )
-        await callback.answer()
-        return
+        msg = await show_progress_bar(callback, text=loader_text)
+        await msg.delete()
 
-    # ✅ увеличиваем step после проверки, чтобы не было цикла
+        await state.update_data(show_loader_after_step=False)
+
+    # ========================= NEXT STEP =========================
+    next_step = flow[step]
+
     await state.update_data(onboarding_step=step + 1)
-
-    image_name = next_step.get("image")
 
     await send_step(
         callback,
         text=next_step["text"],
         button=next_step["button"],
-        image_name=image_name
+        image_name=next_step.get("image")
     )
-
-    await callback.answer()
