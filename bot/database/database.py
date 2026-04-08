@@ -16,6 +16,8 @@ class Database:
 
         database_url = env("DATABASE_URL")
 
+        print("DB URL:", database_url) # DEBUG
+
         self.pool = await asyncpg.create_pool(
             dsn=database_url,
             min_size=1,
