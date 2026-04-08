@@ -20,6 +20,7 @@ class Database:
             dsn=database_url,
             min_size=1,
             max_size=5,
+            ssl="require"
         )
 
     async def close(self):
