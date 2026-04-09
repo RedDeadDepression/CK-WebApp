@@ -7,6 +7,10 @@ export function FreePlanStub() {
   try {
     const tg = window.Telegram?.WebApp;
 
+    console.log("TG OBJECT:", tg);
+    console.log("TG DATA:", tg?.initDataUnsafe);
+    console.log("USER:", tg?.initDataUnsafe?.user);
+
     if (!tg) {
       console.error("Telegram WebApp not found");
       return;
