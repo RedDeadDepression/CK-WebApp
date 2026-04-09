@@ -3,7 +3,9 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import "dotenv/config";
+import { Bot } from "grammy";
 
+const bot = new Bot(process.env.BOT_TOKEN!);
 const app = express();
 const httpServer = createServer(app);
 
@@ -22,28 +24,6 @@ app.use(
 );
 
 app.use(express.urlencoded({ extended: false }));
-
-/**
- * ========================= ПРОКСИ ДЛЯ ОПЛАТЫ =========================
- */
-app.post("/create-invoice", async (req, res) => {
-  try {
-    const response = await fetch("http://bot:8000/create-invoice", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(req.body),
-    });
-
-    const data = await response.json();
-
-    res.json(data);
-  } catch (error) {
-    console.error("Proxy error:", error);
-    res.status(500).json({ error: "Failed to create invoice" });
-  }
-});
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -80,6 +60,33 @@ app.use((req, res, next) => {
   });
 
   next();
+});
+
+app.post("/create-invoice", async (req, res) => {
+  try {
+    const { user_id } = req.body;
+
+    if (!user_id) {
+      return res.status(400).json({ error: "user_id required" });
+    }
+
+    const payload = `vip_${user_id}_${Date.now()}`;
+
+    const link = await bot.api.createInvoiceLink(
+      "VIP Access",
+      "Unlock all strategies",
+      payload,
+      "",
+      "XTR",
+      [{ label: "VIP", amount: 100 }]
+    );
+
+    res.json({ invoice_link: link });
+
+  } catch (error) {
+    console.error("Invoice error:", error);
+    res.status(500).json({ error: "Failed to create invoice" });
+  }
 });
 
 (async () => {
