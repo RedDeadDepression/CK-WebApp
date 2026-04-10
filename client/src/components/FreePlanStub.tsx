@@ -16,7 +16,9 @@ export function FreePlanStub() {
       return;
     }
 
-    const userId = tg.initDataUnsafe?.user?.id;
+    const userId = tg.initDataUnsafe?.user?.id || 123;
+
+    console.log("CLICK WORKED");
 
     if (!userId) {
       console.error("No Telegram user");
@@ -25,7 +27,7 @@ export function FreePlanStub() {
 
     console.log("Buying VIP...");
 
-    const res = await fetch("/create-invoice", {
+    const res = await fetch("https://ck-webapp-production.up.railway.app/create-invoice", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
