@@ -36,9 +36,11 @@ async def main():
     dp.include_router(handlers.payment_router)
 
     await bot.delete_webhook(drop_pending_updates = True)
-    await dp.start_polling(bot)
 
-    await db.close()
+    try:
+        await dp.start_polling(bot)
+    finally:
+        await db.close()
 
 
 if __name__ == "__main__":
