@@ -17,6 +17,10 @@ async def successful_payment(message: Message, db: Database):
     print("PAYMENT SUCCESS:", message.successful_payment)
     print("PAYLOAD:", payload)
 
+    if await db.is_vip(user_id):
+        await message.answer("⚠️ You already have VIP access.")
+        return
+
     if payload.startswith("vip_"):
         await db.set_vip(user_id)
 
