@@ -33,6 +33,7 @@ async def main():
     await set_main_menu(bot, config)
     dp.include_router(handlers.user_router)
     dp.include_router(handlers.survey_router)
+    dp.include_router(handlers.payment_router)
 
     await bot.delete_webhook(drop_pending_updates = True)
     await dp.start_polling(bot)
