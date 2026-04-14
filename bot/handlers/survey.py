@@ -1,6 +1,3 @@
-import asyncio
-import random
-
 from aiogram import F, Router
 from aiogram.types import CallbackQuery, FSInputFile
 from aiogram.fsm.state import State, StatesGroup
@@ -162,23 +159,33 @@ async def process_next(callback: CallbackQuery, state: FSMContext, db: Database)
             return
 
         # 🚀 Если onboarding еще не пройден — запускаем его
-        await state.set_state(FSMSurvey.calculating)
+        await callback.answer()
 
-        await callback.message.edit_reply_markup(reply_markup=None)
+        await state.set_state(FSMSurvey.calculating)
 
         msg = await show_progress_bar(callback)
 
-        await msg.delete()
+        try:
+            await callback.message.delete()
+        except TelegramBadRequest:
+            pass
 
         try:
             expenses = await process_calculating(db, telegram_user_id)
+
         except ValueError:
-            await callback.message.edit_text(
+            await state.clear()
+
+            await callback.message.answer(
                 "⚠️ Some answers are missing. Please restart with /start."
             )
-            await state.clear()
-            await callback.answer()
             return
+
+        finally:
+            try:
+                await msg.delete()
+            except Exception:
+                pass
 
         await db.update_daily_cost(
             telegram_user_id,
@@ -186,8 +193,6 @@ async def process_next(callback: CallbackQuery, state: FSMContext, db: Database)
         )
 
         photo = FSInputFile("images/scales.png")  # если бот запускается из корня проекта
-
-        await callback.message.delete()
 
         await callback.message.answer_photo(
             photo=photo,
@@ -203,7 +208,6 @@ async def process_next(callback: CallbackQuery, state: FSMContext, db: Database)
             parse_mode="HTML"
         )
 
-        await callback.answer()
         return
 
     # === NORMAL NEXT ===
@@ -455,10 +459,19 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
 
         await state.update_data(show_loader_after_step=False)
 
+        return
+
     # ========================= NEXT STEP =========================
     next_step = flow[step]
 
-    await state.update_data(onboarding_step=step + 1)
+    next_index = step + 1
+    next_step_config = flow[next_index] if next_index < len(flow) else {}
+
+    await state.update_data(
+        onboarding_step= next_index,
+        show_loader_after_step=next_step_config.get("show_loader", False),
+        loader_text=next_step_config.get("loader_text", "⏳ Calculating...")
+    )
 
     await send_step(
         callback,
@@ -466,3 +479,5 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
         button=next_step["button"],
         image_name=next_step.get("image")
     )
+
+    return
