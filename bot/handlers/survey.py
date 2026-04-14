@@ -171,11 +171,6 @@ async def process_next(callback: CallbackQuery, state: FSMContext, db: Database)
         msg = await show_progress_bar(callback)
 
         try:
-            await callback.message.delete()
-        except TelegramBadRequest:
-            pass
-
-        try:
             expenses = await process_calculating(db, telegram_user_id)
 
         except ValueError:
