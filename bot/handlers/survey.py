@@ -163,6 +163,11 @@ async def process_next(callback: CallbackQuery, state: FSMContext, db: Database)
 
         await state.set_state(FSMSurvey.calculating)
 
+        try:
+            await callback.message.delete()
+        except TelegramBadRequest:
+            pass
+
         msg = await show_progress_bar(callback)
 
         try:
@@ -457,27 +462,22 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
         msg = await show_progress_bar(callback, text=loader_text)
         await msg.delete()
 
-        await state.update_data(show_loader_after_step=False)
+        next_step = flow[step]
+
+        next_index = step + 1
+        next_step_config = flow[next_index] if next_index < len(flow) else {}
+
+        await state.update_data(
+            onboarding_step=next_index,
+            show_loader_after_step=next_step_config.get("show_loader", False),
+            loader_text=next_step_config.get("loader_text", "⏳ Calculating...")
+        )
+
+        await send_step(
+            callback,
+            text=next_step["text"],
+            button=next_step["button"],
+            image_name=next_step.get("image")
+        )
 
         return
-
-    # ========================= NEXT STEP =========================
-    next_step = flow[step]
-
-    next_index = step + 1
-    next_step_config = flow[next_index] if next_index < len(flow) else {}
-
-    await state.update_data(
-        onboarding_step= next_index,
-        show_loader_after_step=next_step_config.get("show_loader", False),
-        loader_text=next_step_config.get("loader_text", "⏳ Calculating...")
-    )
-
-    await send_step(
-        callback,
-        text=next_step["text"],
-        button=next_step["button"],
-        image_name=next_step.get("image")
-    )
-
-    return
