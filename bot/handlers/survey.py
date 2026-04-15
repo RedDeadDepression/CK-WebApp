@@ -457,13 +457,19 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
         msg = await show_progress_bar(callback, text=loader_text)
         await msg.delete()
 
-        next_step = flow[step]
-
         next_index = step + 1
-        next_step_config = flow[next_index] if next_index < len(flow) else {}
+
+        if next_index >= len(flow):
+            await db.mark_onboarding_completed(telegram_user_id)
+            await show_main_menu(callback, state, db=db)
+            return
+
+        next_step = flow[next_index]
+
+        next_step_config = flow[next_index + 1] if next_index + 1 < len(flow) else {}
 
         await state.update_data(
-            onboarding_step=next_index,
+            onboarding_step=next_index + 1,
             show_loader_after_step=next_step_config.get("show_loader", False),
             loader_text=next_step_config.get("loader_text", "⏳ Calculating...")
         )
