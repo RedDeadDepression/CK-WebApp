@@ -454,6 +454,11 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
     if show_loader:
         loader_text = data.get("loader_text", "⏳ Calculating...")
 
+        try:
+            await callback.message.delete()
+        except:
+            pass
+
         msg = await show_progress_bar(callback, text=loader_text)
         await msg.delete()
 
@@ -465,11 +470,10 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
             return
 
         next_step = flow[next_index]
-
         next_step_config = flow[next_index + 1] if next_index + 1 < len(flow) else {}
 
         await state.update_data(
-            onboarding_step=next_index + 1,
+            onboarding_step=next_index,
             show_loader_after_step=next_step_config.get("show_loader", False),
             loader_text=next_step_config.get("loader_text", "⏳ Calculating...")
         )
@@ -482,3 +486,46 @@ async def process_onboarding(callback: CallbackQuery, state: FSMContext, db: Dat
         )
 
         return
+
+
+    # ========================= NORMAL STEP =========================
+    next_index = step + 1
+
+    if next_index >= len(flow):
+        await db.mark_onboarding_completed(telegram_user_id)
+
+        if flow_key == "after_q3":
+            await state.set_state(FSMSurvey.answering)
+            await state.update_data(question_id=4)
+
+            saved_answer = await db.get_answer(telegram_user_id, 4)
+
+            await callback.message.delete()
+
+            await callback.bot.send_message(
+                chat_id=callback.message.chat.id,
+                text=build_question_text(4),
+                reply_markup=survey_keyboard(4, selected_answer=saved_answer),
+                parse_mode="HTML"
+            )
+            return
+
+        if flow_key == "after_finish":
+            await show_main_menu(callback, state, db=db)
+            return
+
+    next_step = flow[next_index]
+    next_step_config = flow[next_index + 1] if next_index + 1 < len(flow) else {}
+
+    await state.update_data(
+        onboarding_step=next_index,
+        show_loader_after_step=next_step_config.get("show_loader", False),
+        loader_text=next_step_config.get("loader_text", "⏳ Calculating...")
+    )
+
+    await send_step(
+        callback,
+        text=next_step["text"],
+        button=next_step["button"],
+        image_name=next_step.get("image")
+    )
