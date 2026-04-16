@@ -337,14 +337,15 @@ async def process_finish(callback: CallbackQuery, state: FSMContext, db: Databas
 
 # ================= ONBOARDING =================
 async def send_step(callback: CallbackQuery, text: str, button: str, image_name: str | None):
-
     message = callback.message
 
-    # --- STEP WITH IMAGE ---
     if image_name:
         photo = FSInputFile(f"images/{image_name}")
 
-        await message.delete()
+        try:
+            await message.delete()
+        except:
+            pass
 
         await message.answer_photo(
             photo=photo,
@@ -352,33 +353,24 @@ async def send_step(callback: CallbackQuery, text: str, button: str, image_name:
             reply_markup=onboarding_keyboard(button),
             parse_mode="HTML"
         )
-        return
+    else:
+        try:
+            await message.edit_text(
+                text,
+                reply_markup=onboarding_keyboard(button),
+                parse_mode="HTML"
+            )
+        except:
+            try:
+                await message.delete()
+            except:
+                pass
 
-    # --- IF PREVIOUS MESSAGE WAS PHOTO ---
-    if message.photo or message.caption:
-        await message.delete()
-
-        await message.answer(
-            text,
-            reply_markup=onboarding_keyboard(button),
-            parse_mode="HTML"
-        )
-        return
-
-    # --- SAFE EDIT ---
-    try:
-        await message.edit_text(
-            text,
-            reply_markup=onboarding_keyboard(button),
-            parse_mode="HTML"
-        )
-    except TelegramBadRequest:
-        await message.delete()
-        await message.answer(
-            text,
-            reply_markup=onboarding_keyboard(button),
-            parse_mode="HTML"
-        )
+            await message.answer(
+                text,
+                reply_markup=onboarding_keyboard(button),
+                parse_mode="HTML"
+            )
 
 @survey_router.callback_query(F.data == "keep_it_button_click", FSMSurvey.calculating)
 async def start_onboarding(callback: CallbackQuery, state: FSMContext):
