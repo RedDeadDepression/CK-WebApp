@@ -9,34 +9,58 @@ interface SmartTimerProps {
 }
 
 export function SmartTimer({ text, onFinish, onTimerFinished }: SmartTimerProps) {
-  const [duration, setDuration] = useState<number>(53); // Default to 53 seconds
-  const [timeLeft, setTimeLeft] = useState<number>(53); // Default to 53 seconds
+  const [duration, setDuration] = useState<number>(53);
+  const [timeLeft, setTimeLeft] = useState<number>(53);
   const [isActive, setIsActive] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const hasCalledOnFinishRef = useRef(false);
   const isFinished = timeLeft === 0;
 
+  // 🔥 ДОБАВИЛИ
+  const getTelegramUserId = () => {
+    const tg = window.Telegram?.WebApp;
+    if (!tg?.initDataUnsafe?.user?.id) {
+      console.error("No Telegram user");
+      return null;
+    }
+    return String(tg.initDataUnsafe.user.id);
+  };
+
+  // 🔥 ДОБАВИЛИ
+  const sendAttempt = async () => {
+    const telegramUserId = getTelegramUserId();
+    if (!telegramUserId) return;
+
+    try {
+      await fetch("/api/attempts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ telegramUserId }),
+      });
+    } catch (e) {
+      console.error("Attempt error:", e);
+    }
+  };
+
   useEffect(() => {
-    // Detect time in text
     const secondMatch = text.match(/(\d+)\s*seconds?/i);
     const minuteMatch = text.match(/(\d+)\s*minutes?/i);
-    // Only match "sec" when it's NOT part of "seconds" (use word boundary or check it's not followed by "ond")
-    const secMatch2 = !secondMatch ? text.match(/(\d+)\s*sec(?!ond)/i) : null; // e.g. "4 sec" but not "4 seconds"
+    const secMatch2 = !secondMatch ? text.match(/(\d+)\s*sec(?!ond)/i) : null;
 
     let seconds = 0;
     if (secondMatch) seconds += parseInt(secondMatch[1]);
     if (secMatch2) seconds += parseInt(secMatch2[1]);
     if (minuteMatch) seconds += parseInt(minuteMatch[1]) * 60;
 
-    // Default fallbacks for specific practices without explicit numbers in regex
     if (text.includes("10 Minute Rule")) seconds = 600;
-    
-    // Always set a duration - default to 53 seconds if no time detected
+
     const finalDuration = seconds > 0 ? seconds : 53;
     setDuration(finalDuration);
     setTimeLeft(finalDuration);
-    hasCalledOnFinishRef.current = false; // Reset when duration changes
-    // Notify parent that timer is reset when text/duration changes
+    hasCalledOnFinishRef.current = false;
+
     if (onTimerFinished) {
       onTimerFinished(false);
     }
@@ -50,7 +74,7 @@ export function SmartTimer({ text, onFinish, onTimerFinished }: SmartTimerProps)
     } else if (timeLeft === 0 && !hasCalledOnFinishRef.current) {
       setIsActive(false);
       if (intervalRef.current) clearInterval(intervalRef.current);
-      // Call onFinish callback when timer reaches 0 (only once)
+
       if (onFinish) {
         hasCalledOnFinishRef.current = true;
         onFinish();
@@ -62,37 +86,31 @@ export function SmartTimer({ text, onFinish, onTimerFinished }: SmartTimerProps)
     };
   }, [isActive, timeLeft, onFinish]);
 
-  // Notify parent about timer finished state
   useEffect(() => {
     if (onTimerFinished) {
       onTimerFinished(isFinished);
     }
   }, [isFinished, onTimerFinished]);
 
-  // Timer is always visible now - duration is always set (defaults to 53 seconds)
   const progress = (timeLeft / duration) * 100;
-  
+
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, '0')}`;
+    return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
   return (
     <div className="p-3 rounded-xl bg-secondary/50 border border-border">
-      {/* Compact horizontal layout */}
       <div className="flex items-center justify-between gap-3">
-        {/* Time display */}
         <div className="flex items-center gap-3">
           <span className="text-xl font-mono font-bold text-primary tabular-nums">
             {formatTime(timeLeft)}
           </span>
           <div className="h-2 w-16 bg-secondary/80 rounded-full overflow-hidden">
-            <motion.div 
+            <motion.div
               className="h-full bg-[#00E676] rounded-full"
-              style={{
-                boxShadow: '0 0 10px rgba(0, 230, 118, 0.5)'
-              }}
+              style={{ boxShadow: "0 0 10px rgba(0, 230, 118, 0.5)" }}
               initial={{ width: "100%" }}
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.5, ease: "linear" }}
@@ -100,14 +118,18 @@ export function SmartTimer({ text, onFinish, onTimerFinished }: SmartTimerProps)
           </div>
         </div>
 
-        {/* Controls */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setIsActive(!isActive)}
+            onClick={() => {
+              if (!isActive) {
+                sendAttempt(); // 🔥 ВОТ ГДЕ attempt
+              }
+              setIsActive(!isActive);
+            }}
             className={`
               flex items-center gap-1.5 px-4 py-2 rounded-full font-medium text-sm transition-all
-              ${isActive 
-                ? "bg-secondary text-foreground hover:bg-secondary/80" 
+              ${isActive
+                ? "bg-secondary text-foreground hover:bg-secondary/80"
                 : "bg-primary text-primary-foreground hover:opacity-90 active:scale-95"
               }
             `}
@@ -122,15 +144,13 @@ export function SmartTimer({ text, onFinish, onTimerFinished }: SmartTimerProps)
               </>
             )}
           </button>
-          
+
           <button
             onClick={() => {
               setIsActive(false);
               setTimeLeft(duration);
-              hasCalledOnFinishRef.current = false; // Reset callback flag when timer is reset
-              if (onTimerFinished) {
-                onTimerFinished(false); // Notify parent that timer is reset
-              }
+              hasCalledOnFinishRef.current = false;
+              if (onTimerFinished) onTimerFinished(false);
             }}
             className="p-2 rounded-full bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors"
           >

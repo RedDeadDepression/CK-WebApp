@@ -16,7 +16,7 @@ export function FreePlanStub() {
       return;
     }
 
-    const userId = tg.initDataUnsafe?.user?.id || 123;
+    const userId = tg.initDataUnsafe?.user?.id;
 
     console.log("CLICK WORKED");
 
