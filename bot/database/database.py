@@ -253,45 +253,19 @@ class Database:
 
     # ================= WINS =================
 
-    async def add_win(self, telegram_user_id: int | str):
-        telegram_user_id = self._normalize_id(telegram_user_id)
-
-        async with self.pool.acquire() as conn:
-            await conn.execute(
-                """
-                INSERT INTO wins (telegram_user_id)
-                VALUES ($1)
-                """,
-                telegram_user_id,
-            )
-
-    async def get_user_wins(self, telegram_user_id: int | str) -> List[asyncpg.Record]:
-        telegram_user_id = self._normalize_id(telegram_user_id)
-
-        async with self.pool.acquire() as conn:
-            return await conn.fetch(
-                """
-                SELECT *
-                FROM wins
-                WHERE telegram_user_id = $1
-                ORDER BY created_at DESC
-                """,
-                telegram_user_id,
-            )
-
     async def count_user_wins(self, telegram_user_id: int | str) -> int:
         telegram_user_id = self._normalize_id(telegram_user_id)
 
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow(
                 """
-                SELECT COUNT(*) AS total
+                SELECT wins_count
                 FROM wins
                 WHERE telegram_user_id = $1
                 """,
                 telegram_user_id,
             )
-            return row["total"] if row else 0
+            return row["wins_count"] if row else 0
 
     # ================= ATTEMPTS =================
 
@@ -301,13 +275,13 @@ class Database:
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow(
                 """
-                SELECT COUNT(*) as total
+                SELECT attempts_count
                 FROM attempts
                 WHERE telegram_user_id = $1
                 """,
-                telegram_user_id
+                telegram_user_id,
             )
-            return row["total"] if row else 0
+            return row["attempts_count"] if row else 0
 
     # ================= ADMIN =================
 
