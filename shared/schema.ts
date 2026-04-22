@@ -25,17 +25,19 @@ export const users = pgTable("users", {
 /* ================= WINS ================= */
 
 export const wins = pgTable("wins", {
-  id: serial("id").primaryKey(),
-  telegramUserId: text("telegram_user_id").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  telegramUserId: text("telegram_user_id").primaryKey(),
+
+  winsCount: integer("wins_count").default(0).notNull(),
+
+  lastWinAt: timestamp("last_win_at"),
 });
 
 /* ================= ATTEMPTS ================= */
 
 export const attempts = pgTable("attempts", {
-  id: serial("id").primaryKey(),
-  telegramUserId: text("telegram_user_id").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  telegramUserId: text("telegram_user_id").primaryKey(),
+
+  attemptsCount: integer("attempts_count").default(0).notNull(),
 });
 
 /* ================= USER STATS ================= */

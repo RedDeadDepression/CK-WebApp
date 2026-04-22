@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { wins, users, attempts } from "./schema";
+import { users } from "./schema";
 
 export const api = {
   wins: {
@@ -10,15 +10,19 @@ export const api = {
         telegramUserId: z.string(),
       }),
       responses: {
-        201: z.custom<typeof wins.$inferSelect>(),
+        200: z.object({
+          success: z.boolean(),
+        }),
       },
     },
 
-    listByUser: {
+    getByUser: {
       method: "GET" as const,
       path: "/api/wins/:telegramUserId",
       responses: {
-        200: z.array(z.custom<typeof wins.$inferSelect>()),
+        200: z.object({
+          wins: z.number(),
+        }),
       },
     },
   },
@@ -31,7 +35,19 @@ export const api = {
         telegramUserId: z.string(),
       }),
       responses: {
-        201: z.custom<typeof attempts.$inferSelect>(),
+        200: z.object({
+          success: z.boolean(),
+        }),
+      },
+    },
+
+    getByUser: {
+      method: "GET" as const,
+      path: "/api/attempts/:telegramUserId",
+      responses: {
+        200: z.object({
+          attempts: z.number(),
+        }),
       },
     },
   },

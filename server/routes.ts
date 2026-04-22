@@ -16,8 +16,26 @@ export function registerRoutes(app: Express) {
     res.json(user);
   });
 
+  /* ================= STATS ================= */
+
+app.get("/api/stats/:telegramUserId", async (req, res) => {
+  const { telegramUserId } = req.params;
+
+  const wins = await storage.getWinsCount(telegramUserId);
+  const attempts = await storage.getAttemptsCount(telegramUserId);
+
+  const user = await storage.getUserByTelegramId(telegramUserId);
+
+  res.json({
+    wins,
+    attempts,
+    dailyCost: user?.dailyCost ?? null,
+  });
+});
+
   /* ================= WINS ================= */
 
+  // ➕ добавить win (увеличить счётчик)
   app.post("/api/wins", async (req, res) => {
     const { telegramUserId } = req.body;
 
@@ -25,18 +43,23 @@ export function registerRoutes(app: Express) {
       return res.status(400).json({ message: "telegramUserId required" });
     }
 
-    const win = await storage.createWin({ telegramUserId });
-    res.status(201).json(win);
+    await storage.addWin(telegramUserId);
+
+    res.status(200).json({ success: true });
   });
 
+  // 📊 получить wins
   app.get("/api/wins/:telegramUserId", async (req, res) => {
     const { telegramUserId } = req.params;
-    const wins = await storage.getWinsByTelegramId(telegramUserId);
-    res.json(wins);
+
+    const wins = await storage.getWinsCount(telegramUserId);
+
+    res.json({ wins });
   });
 
   /* ================= ATTEMPTS ================= */
 
+  // ➕ добавить попытку
   app.post("/api/attempts", async (req, res) => {
     const { telegramUserId } = req.body;
 
@@ -44,13 +67,17 @@ export function registerRoutes(app: Express) {
       return res.status(400).json({ message: "telegramUserId required" });
     }
 
-    const attempt = await storage.createAttempt({ telegramUserId });
-    res.status(201).json(attempt);
+    await storage.addAttempt(telegramUserId);
+
+    res.status(200).json({ success: true });
   });
 
+  // 📊 получить attempts
   app.get("/api/attempts/:telegramUserId", async (req, res) => {
     const { telegramUserId } = req.params;
-    const count = await storage.countAttempts(telegramUserId);
-    res.json({ attempts: count });
+
+    const attempts = await storage.getAttemptsCount(telegramUserId);
+
+    res.json({ attempts });
   });
 }

@@ -12,21 +12,20 @@ import {
   type InsertAttempt,
   type UserStats
 } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 export interface IStorage {
-  createWin(win: InsertWin): Promise<Win>;
-  getWins(): Promise<Win[]>;
-  getWinsByTelegramId(telegramUserId: string): Promise<Win[]>;
-
-  createAttempt(attempt: InsertAttempt): Promise<Attempt>;
-  getAttemptsByTelegramId(telegramUserId: string): Promise<Attempt[]>;
-
   getUserByTelegramId(telegramUserId: string): Promise<User | null>;
   createOrUpdateUser(telegramUserId: string, isVip?: boolean): Promise<User>;
 
   getUserStats(telegramUserId: string): Promise<UserStats | null>;
   createUserStatsIfNotExists(telegramUserId: string): Promise<void>;
+
+  addWin(telegramUserId: string): Promise<void>;
+  getWinsCount(telegramUserId: string): Promise<number>;
+
+  addAttempt(telegramUserId: string): Promise<void>;
+  getAttemptsCount(telegramUserId: string): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -73,43 +72,62 @@ export class DatabaseStorage implements IStorage {
 
   // ================= WINS =================
 
-  async createWin(insertWin: InsertWin): Promise<Win> {
-    const [win] = await db.insert(wins).values(insertWin).returning();
-    return win;
+  async addWin(telegramUserId: string): Promise<void> {
+    await this.createOrUpdateUser(telegramUserId);
+
+    await db
+      .insert(wins)
+      .values({
+        telegramUserId,
+        winsCount: 1,
+        lastWinAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: wins.telegramUserId,
+        set: {
+          winsCount: sql`${wins.winsCount} + 1`,
+          lastWinAt: new Date(),
+        },
+      });
   }
 
-  async getWins(): Promise<Win[]> {
-    return await db.select().from(wins);
-  }
-
-  async getWinsByTelegramId(telegramUserId: string): Promise<Win[]> {
-    return await db
+  async getWinsCount(telegramUserId: string): Promise<number> {
+    const [row] = await db
       .select()
       .from(wins)
-      .where(eq(wins.telegramUserId, telegramUserId));
+      .where(eq(wins.telegramUserId, telegramUserId))
+      .limit(1);
+
+    return row?.winsCount ?? 0;
   }
 
   // ================= ATTEMPTS =================
 
-  async createAttempt(insertAttempt: InsertAttempt): Promise<Attempt> {
-    const [attempt] = await db.insert(attempts).values(insertAttempt).returning();
-    return attempt;
+  async addAttempt(telegramUserId: string): Promise<void> {
+    await this.createOrUpdateUser(telegramUserId);
+
+    await db
+      .insert(attempts)
+      .values({
+        telegramUserId,
+        attemptsCount: 1,
+      })
+      .onConflictDoUpdate({
+        target: attempts.telegramUserId,
+        set: {
+          attemptsCount: sql`${attempts.attemptsCount} + 1`,
+        },
+      });
   }
 
-  async getAttemptsByTelegramId(telegramUserId: string): Promise<Attempt[]> {
-    return await db
+  async getAttemptsCount(telegramUserId: string): Promise<number> {
+    const [row] = await db
       .select()
       .from(attempts)
-      .where(eq(attempts.telegramUserId, telegramUserId));
-  }
+      .where(eq(attempts.telegramUserId, telegramUserId))
+      .limit(1);
 
-  async countAttempts(telegramUserId: string): Promise<number> {
-    const rows = await db
-      .select()
-      .from(attempts)
-      .where(eq(attempts.telegramUserId, telegramUserId));
-
-    return rows.length;
+    return row?.attemptsCount ?? 0;
   }
 
   // ================= USER STATS =================
