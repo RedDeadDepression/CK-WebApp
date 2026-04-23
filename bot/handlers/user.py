@@ -46,20 +46,39 @@ async def process_my_stats_button_click(callback: CallbackQuery, db: Database):
     attempts = await db.count_user_attempts(telegram_user_id)
     daily_cost = await db.get_daily_cost(telegram_user_id)
 
+    # 💵 Money
     if daily_cost:
         saved_money = wins * (daily_cost / 20)
     else:
         saved_money = 0
 
-    attempts = attempts if attempts > 0 else 1
-    confidence_text = f"{wins} wins out of {attempts} attempts"
+    # 💪 Confidence + message
+    if attempts == 0:
+        confidence_text = "No attempts yet"
+        motivation_text = "Start your first step — you’ve got this 💪"
+    else:
+        success_rate = int((wins / attempts) * 100)
+        confidence_text = f"{wins} wins out of {attempts} attempts ({success_rate}%)"
 
+        # 🎯 Психология
+        if success_rate < 30:
+            motivation_text = "Every attempt counts. You're building awareness — keep going."
+        elif success_rate < 60:
+            motivation_text = "You're getting stronger. Keep pushing forward."
+        elif success_rate < 85:
+            motivation_text = "Great progress. You're taking control."
+        else:
+            motivation_text = "You're in full control. This is a strong habit already 🔥"
+
+    # ⏳ Time
     saved_time = wins * 4
 
     text = (
-        f"💵 SAVED MONEY: ${saved_money:.2f} in unsmoked cigarettes\n\n"
-        f"💪 CONFIDENCE TRACKER: {confidence_text}\n\n"
-        f"⏳ SAVED TIME: {saved_time} minutes for any task"
+        f"📊 <b>Your Progress</b>\n\n"
+        f"💪 <b>Confidence:</b> {confidence_text}\n"
+        f"🧠 <i>{motivation_text}</i>\n\n"
+        f"💵 <b>Saved:</b> ${saved_money:.2f}\n"
+        f"⏳ <b>Time gained:</b> {saved_time} minutes\n"
     )
 
     await callback.message.edit_text(
