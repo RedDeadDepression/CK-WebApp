@@ -318,6 +318,11 @@ async def process_finish(callback: CallbackQuery, state: FSMContext, db: Databas
     )
 
     if branch == "skip_intro":
+        try:
+            await callback.message.delete()
+        except:
+            pass
+
         msg = await show_progress_bar(
             callback,
             text="⏳ Analyzing your answers..."
