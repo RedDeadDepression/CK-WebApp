@@ -16,34 +16,6 @@ export function SmartTimer({ text, onFinish, onTimerFinished }: SmartTimerProps)
   const hasCalledOnFinishRef = useRef(false);
   const isFinished = timeLeft === 0;
 
-  // 🔥 ДОБАВИЛИ
-  const getTelegramUserId = () => {
-    const tg = window.Telegram?.WebApp;
-    if (!tg?.initDataUnsafe?.user?.id) {
-      console.error("No Telegram user");
-      return null;
-    }
-    return String(tg.initDataUnsafe.user.id);
-  };
-
-  // 🔥 ДОБАВИЛИ
-  const sendAttempt = async () => {
-    const telegramUserId = getTelegramUserId();
-    if (!telegramUserId) return;
-
-    try {
-      await fetch("/api/attempts", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ telegramUserId }),
-      });
-    } catch (e) {
-      console.error("Attempt error:", e);
-    }
-  };
-
   useEffect(() => {
     const secondMatch = text.match(/(\d+)\s*seconds?/i);
     const minuteMatch = text.match(/(\d+)\s*minutes?/i);
@@ -121,10 +93,7 @@ export function SmartTimer({ text, onFinish, onTimerFinished }: SmartTimerProps)
         <div className="flex items-center gap-2">
           <button
             onClick={() => {
-              if (!isActive) {
-                sendAttempt(); // 🔥 ВОТ ГДЕ attempt
-              }
-              setIsActive(!isActive);
+              setIsActive(!isActive); // ✅ просто toggle, без API
             }}
             className={`
               flex items-center gap-1.5 px-4 py-2 rounded-full font-medium text-sm transition-all
@@ -150,7 +119,10 @@ export function SmartTimer({ text, onFinish, onTimerFinished }: SmartTimerProps)
               setIsActive(false);
               setTimeLeft(duration);
               hasCalledOnFinishRef.current = false;
-              if (onTimerFinished) onTimerFinished(false);
+
+              if (onTimerFinished) {
+                onTimerFinished(false);
+              }
             }}
             className="p-2 rounded-full bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors"
           >
