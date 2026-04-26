@@ -8,14 +8,42 @@ import { getLocalStorageWins } from "@/lib/localStorageWins";
 export default function Home() {
   const { data: wins, isLoading } = useWins();
   const [localStorageWins, setLocalStorageWins] = useState(0);
-  
+
   useEffect(() => {
-    // Get wins from LocalStorage as fallback
     setLocalStorageWins(getLocalStorageWins());
   }, []);
-  
-  // Use API wins if available, otherwise fall back to LocalStorage
-  const totalWins = wins?.length || localStorageWins;
+
+  const totalWins = wins ?? localStorageWins;
+
+  // ================= TELEGRAM =================
+
+  const getTelegramUserId = () => {
+    const tg = window.Telegram?.WebApp;
+    return tg?.initDataUnsafe?.user?.id
+      ? String(tg.initDataUnsafe.user.id)
+      : null;
+  };
+
+  // ================= ATTEMPTS =================
+
+  const sendAttempt = async () => {
+    const telegramUserId = getTelegramUserId();
+    if (!telegramUserId) return;
+
+    try {
+      await fetch("/api/attempts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ telegramUserId }),
+      });
+    } catch (e) {
+      console.error("Attempt error:", e);
+    }
+  };
+
+  // ================= UI =================
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative overflow-hidden">
@@ -29,7 +57,7 @@ export default function Home() {
         className="w-full max-w-md space-y-12 z-10"
       >
         <div className="text-center space-y-4">
-          <motion.div 
+          <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.2, type: "spring" }}
@@ -37,19 +65,25 @@ export default function Home() {
           >
             <BrainCircuit className="w-10 h-10 text-primary" />
           </motion.div>
+
           <h1 className="text-4xl md:text-5xl font-black text-foreground tracking-tight">
             CRAVE<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60 text-glow">
               KILLER
             </span>
           </h1>
+
           <p className="text-muted-foreground text-lg max-w-xs mx-auto">
-          The instant escape hatch for your toughest cravings.
+            The instant escape hatch for your toughest cravings.
           </p>
         </div>
 
+        {/* 🔥 SOS BUTTON */}
         <Link href="/sos" className="block group">
-          <button className="w-full relative py-6 rounded-2xl bg-primary text-primary-foreground font-black text-2xl uppercase tracking-wider shadow-[0_0_40px_rgba(0,230,118,0.3)] hover:shadow-[0_0_60px_rgba(0,230,118,0.5)] transition-all duration-300 transform hover:-translate-y-1 active:scale-95 active:translate-y-0 overflow-hidden">
+          <button
+            onClick={sendAttempt} // ✅ attempt теперь считается правильно
+            className="w-full relative py-6 rounded-2xl bg-primary text-primary-foreground font-black text-2xl uppercase tracking-wider shadow-[0_0_40px_rgba(0,230,118,0.3)] hover:shadow-[0_0_60px_rgba(0,230,118,0.5)] transition-all duration-300 transform hover:-translate-y-1 active:scale-95 active:translate-y-0 overflow-hidden"
+          >
             <span className="relative z-10 flex items-center justify-center gap-3">
               <ShieldAlert className="w-8 h-8" />
               SOS MODE
@@ -59,7 +93,7 @@ export default function Home() {
         </Link>
 
         {/* Stats Card */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
@@ -70,16 +104,24 @@ export default function Home() {
               <Trophy className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground font-medium">Total Wins</p>
+              <p className="text-sm text-muted-foreground font-medium">
+                Total Wins
+              </p>
               <p className="text-2xl font-mono font-bold text-foreground">
                 {isLoading ? "..." : totalWins}
               </p>
             </div>
           </div>
+
           <div className="h-10 w-px bg-white/10" />
+
           <div className="text-right">
-            <p className="text-xs text-muted-foreground">Keep fighting.</p>
-            <p className="text-xs text-primary font-bold">You are stronger.</p>
+            <p className="text-xs text-muted-foreground">
+              Keep fighting.
+            </p>
+            <p className="text-xs text-primary font-bold">
+              You are stronger.
+            </p>
           </div>
         </motion.div>
       </motion.div>
