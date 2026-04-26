@@ -7,6 +7,8 @@ from database.database import Database
 import keyboards
 from services.common_utils import show_main_menu
 
+import json
+
 
 user_router = Router()
 
@@ -110,3 +112,23 @@ async def reset_me_handler(message: Message, db: Database, config):
     await db.delete_user(message.from_user.id)
 
     await message.answer("Your data has been reset.")
+
+
+@user_router.message(F.web_app_data)
+async def handle_webapp_data(message: Message, db: Database):
+    try:
+        print("WEBAPP DATA RAW:", message.web_app_data.data)
+
+        data = json.loads(message.web_app_data.data)
+
+        print("PARSED:", data)
+
+        if data.get("action") == "win_recorded":
+            user_id = message.from_user.id
+
+            await db.create_win(user_id)
+
+            print(f"WIN SAVED for {user_id}")
+
+    except Exception as e:
+        print("WEBAPP ERROR:", e)
