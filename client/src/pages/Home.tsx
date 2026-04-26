@@ -13,7 +13,7 @@ export default function Home() {
     setLocalStorageWins(getLocalStorageWins());
   }, []);
 
-  const totalWins = wins ?? localStorageWins;
+  const totalWins = isLoading ? localStorageWins : (wins?.length ?? 0);
 
   // ================= TELEGRAM =================
 
