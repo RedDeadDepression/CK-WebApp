@@ -109,7 +109,7 @@ export default function SosFlow() {
       setViewState("FAILURE");
       return;
     }
-    
+
     if (currentPractice) {
       const newExcluded = [...excludedTypes, currentPractice.type];
       setExcludedTypes(newExcluded);
@@ -118,12 +118,6 @@ export default function SosFlow() {
   };
 
   const handleSuccess = () => {
-    // Increment LocalStorage immediately for instant feedback
-    incrementLocalStorageWins();
-    
-    // Also try to create win via API (if available)
-    createWin.mutate();
-    
     setViewState("SUCCESS");
   };
 
@@ -132,15 +126,15 @@ export default function SosFlow() {
     <div className="h-screen w-full bg-background overflow-hidden relative">
         <AnimatePresence mode="wait">
             {viewState === "QUIZ" && (
-                <QuizView 
-                    step={quizStep} 
-                    onAnswer={handleAnswer} 
+                <QuizView
+                    step={quizStep}
+                    onAnswer={handleAnswer}
                     key="quiz"
                 />
             )}
-            
+
             {viewState === "PRACTICE" && currentPractice && (
-                <PracticeView 
+                <PracticeView
                     practice={currentPractice}
                     onSuccess={handleSuccess}
                     onNext={handleNextPractice}
@@ -150,8 +144,8 @@ export default function SosFlow() {
             )}
 
             {viewState === "SUCCESS" && currentPractice && (
-                <SuccessView 
-                    key="success" 
+                <SuccessView
+                    key="success"
                     practiceId={String(currentPractice.id)}
                 />
             )}
@@ -180,16 +174,16 @@ function QuizView({ step, onAnswer }: { step: QuizStep; onAnswer: (a: boolean) =
   const CurrentIcon = questions[step].icon;
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }} 
-      animate={{ opacity: 1 }} 
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="h-screen w-screen relative overflow-hidden"
     >
       {/* Progress Bar */}
       <div className="absolute top-0 left-0 w-full h-2 bg-secondary z-20">
-        <motion.div 
-            className="h-full bg-primary" 
+        <motion.div
+            className="h-full bg-primary"
             initial={{ width: "0%" }}
             animate={{ width: `${((step + 1) / 3) * 100}%` }}
         />
@@ -198,7 +192,7 @@ function QuizView({ step, onAnswer }: { step: QuizStep; onAnswer: (a: boolean) =
       {/* Split Screen Container */}
       <div className="flex flex-col h-full w-full">
         {/* YES Zone (Top Half) */}
-        <button 
+        <button
           onClick={() => onAnswer(true)}
           className="flex-1 w-full relative z-10 bg-gradient-to-b from-primary/20 to-primary/10 hover:from-primary/30 hover:to-primary/20 active:from-primary/40 active:to-primary/30 transition-all group"
         >
@@ -214,7 +208,7 @@ function QuizView({ step, onAnswer }: { step: QuizStep; onAnswer: (a: boolean) =
         </button>
 
         {/* NO Zone (Bottom Half) */}
-        <button 
+        <button
           onClick={() => onAnswer(false)}
           className="flex-1 w-full relative z-10 bg-secondary hover:bg-secondary/90 active:bg-secondary/80 transition-all group"
         >
@@ -276,11 +270,11 @@ function PracticeView({ practice, onSuccess, onNext, attempts }: { practice: Pra
                 <div className="max-w-md mx-auto w-full px-4 py-6 flex flex-col justify-center min-h-full">
                     <div className="bg-card border border-white/10 p-6 rounded-2xl shadow-2xl relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-24 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-                        
+
                         <h2 className="text-2xl font-display font-black text-primary mb-4 relative z-10">
                             {practice.title}
                         </h2>
-                        
+
                         <p className="text-base text-foreground/90 leading-relaxed font-body relative z-10">
                             {practice.text}
                         </p>
@@ -291,30 +285,16 @@ function PracticeView({ practice, onSuccess, onNext, attempts }: { practice: Pra
             {/* Footer - Timer + Buttons, Sticky at Bottom */}
             <div className="w-full p-4 bg-black/80 backdrop-blur-md border-t border-white/10">
                 <div className="max-w-md mx-auto w-full space-y-3">
-                    <SmartTimer 
-                        text={practice.text} 
+                    <SmartTimer
+                        text={practice.text}
                         onFinish={handleTimerFinish}
                         onTimerFinished={setIsTimerFinished}
                     />
-                    
-                    {/* It Helped button - Always visible, disabled until timer finishes */}
-                    <button 
-                        onClick={onSuccess}
-                        disabled={!isTimerFinished}
-                        className={`
-                            w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 
-                            transition-all active:scale-95
-                            ${isTimerFinished
-                                ? "bg-primary text-primary-foreground shadow-[0_0_20px_rgba(0,230,118,0.25)] hover:shadow-[0_0_30px_rgba(0,230,118,0.4)] cursor-pointer"
-                                : "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed opacity-60"
-                            }
-                        `}
-                    >
-                        <Check className="w-6 h-6" />
-                        It Helped!
-                    </button>
 
-                    <button 
+                    {/* It Helped button - Always visible, disabled until timer finishes */}
+
+
+                    <button
                         onClick={onNext}
                         className="w-full py-4 bg-secondary text-muted-foreground hover:text-foreground rounded-2xl font-medium text-lg flex items-center justify-center gap-3 transition-colors active:scale-95"
                     >
@@ -335,7 +315,7 @@ function SuccessView({ practiceId }: { practiceId: string }) {
     useEffect(() => {
         // Update total wins from LocalStorage
         setTotalWins(getLocalStorageWins());
-        
+
         // Show additional content after animation completes
         const timer = setTimeout(() => {
             setShowContent(true);
@@ -381,14 +361,14 @@ function SuccessView({ practiceId }: { practiceId: string }) {
 
                     <div className="w-full max-w-md px-4 pb-4">
                         {isTelegramWebApp() ? (
-                            <button 
+                            <button
                                 onClick={handleBackToBot}
                                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-[0_0_20px_rgba(0,230,118,0.3)]"
                             >
                                 Back to Bot <ArrowRight className="w-5 h-5" />
                             </button>
                         ) : (
-                            <button 
+                            <button
                                 onClick={() => setLocation("/")}
                                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-[0_0_20px_rgba(0,230,118,0.3)]"
                             >
@@ -417,9 +397,9 @@ function FailureView() {
                 <div className="w-24 h-24 bg-secondary rounded-full flex items-center justify-center mx-auto mb-6">
                     <User className="w-10 h-10 text-muted-foreground" />
                 </div>
-                
+
                 <h2 className="text-3xl font-bold text-foreground">It's okay.</h2>
-                
+
                 <p className="text-lg text-muted-foreground leading-relaxed">
                     Just breathe for 60 seconds. <br/>
                     I'm with you. <br/>
@@ -428,7 +408,7 @@ function FailureView() {
 
                 <SmartTimer text="60 seconds" />
 
-                <button 
+                <button
                     onClick={() => setLocation("/")}
                     className="w-full py-4 mt-8 border border-white/10 text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-xl font-medium transition-colors"
                 >
