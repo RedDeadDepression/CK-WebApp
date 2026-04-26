@@ -6,10 +6,10 @@ import { SmartTimer } from "@/components/SmartTimer";
 import { useCreateWin } from "@/hooks/use-wins";
 import { useUser } from "@/hooks/use-user";
 import { useLocation } from "wouter";
-import { incrementLocalStorageWins, getLocalStorageWins } from "@/lib/localStorageWins";
 import { isTelegramWebApp, sendWinAndClose } from "@/lib/telegram";
 import { BreakingCigarette } from "@/components/BreakingCigarette";
 import { FreePlanStub } from "@/components/FreePlanStub";
+import { useWins } from "@/hooks/use-wins";
 
 // --- TYPES ---
 type QuizStep = 0 | 1 | 2;
@@ -324,13 +324,12 @@ function PracticeView({ practice, onSuccess, onNext, attempts }: { practice: Pra
 
 function SuccessView({ practiceId }: { practiceId: string }) {
     const [, setLocation] = useLocation();
-    const [totalWins, setTotalWins] = useState(0);
+    const { data: wins } = useWins();
     const [showContent, setShowContent] = useState(false);
 
-    useEffect(() => {
-        // Update total wins from LocalStorage
-        setTotalWins(getLocalStorageWins());
+    const totalWins = wins?.length ?? 0;
 
+    useEffect(() => {
         // Show additional content after animation completes
         const timer = setTimeout(() => {
             setShowContent(true);
