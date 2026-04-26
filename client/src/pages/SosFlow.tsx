@@ -292,6 +292,21 @@ function PracticeView({ practice, onSuccess, onNext, attempts }: { practice: Pra
                     />
 
                     {/* It Helped button - Always visible, disabled until timer finishes */}
+                    <button
+                    onClick={onSuccess}
+                    disabled={!isTimerFinished}
+                    className={`
+                        w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-3
+                        transition-all active:scale-95
+                        ${isTimerFinished
+                        ? "bg-primary text-primary-foreground shadow-[0_0_20px_rgba(0,230,118,0.25)] hover:shadow-[0_0_30px_rgba(0,230,118,0.4)] cursor-pointer"
+                        : "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed opacity-60"
+                        }
+                    `}
+                    >
+                    <Check className="w-6 h-6" />
+                    It Helped!
+                    </button>
 
 
                     <button
