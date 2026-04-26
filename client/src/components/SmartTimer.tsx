@@ -79,6 +79,7 @@ export function SmartTimer({ text, onFinish, onTimerFinished }: SmartTimerProps)
           <span className="text-xl font-mono font-bold text-primary tabular-nums">
             {formatTime(timeLeft)}
           </span>
+
           <div className="h-2 w-16 bg-secondary/80 rounded-full overflow-hidden">
             <motion.div
               className="h-full bg-[#00E676] rounded-full"
@@ -92,9 +93,7 @@ export function SmartTimer({ text, onFinish, onTimerFinished }: SmartTimerProps)
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => {
-              setIsActive(!isActive); // ✅ просто toggle, без API
-            }}
+            onClick={() => setIsActive(!isActive)}
             className={`
               flex items-center gap-1.5 px-4 py-2 rounded-full font-medium text-sm transition-all
               ${isActive
