@@ -355,7 +355,7 @@ function SuccessView({ practiceId }: { practiceId: string }) {
             animate={{ scale: 1, opacity: 1 }}
             className="h-full w-full flex flex-col items-center justify-center p-8 bg-background text-center"
         >
-            <BreakingCigarette />
+            <BreakingCigarette onItHelps={handleBackToBot} />
 
             {showContent && (
                 <motion.div

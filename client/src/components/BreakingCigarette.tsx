@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import "./BreakingCigarette.css";
 
-export function BreakingCigarette() {
+export function BreakingCigarette({ onItHelps }: { onItHelps: () => void }) {
   const [showText, setShowText] = useState(false);
-  const [sent, setSent] = useState(false);
 
   useEffect(() => {
     // Показываем текст после завершения анимации
@@ -13,34 +12,6 @@ export function BreakingCigarette() {
 
     return () => clearTimeout(timer);
   }, []);
-
-  const handleItHelps = async () => {
-    if (sent) return; // защита от дабл клика
-    setSent(true);
-
-    const tg = window.Telegram?.WebApp;
-
-    if (!tg?.initDataUnsafe?.user?.id) {
-      console.error("No Telegram user");
-      return;
-    }
-
-    const telegramUserId = String(tg.initDataUnsafe.user.id);
-
-    try {
-      await fetch("/api/wins", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ telegramUserId }),
-      });
-
-      console.log("WIN RECORDED");
-    } catch (e) {
-      console.error("Win error:", e);
-    }
-  };
 
   return (
     <div className="breaking-cigarette-container">
@@ -96,20 +67,8 @@ export function BreakingCigarette() {
 
         {/* Эффект разлома */}
         <g className="snap-effect">
-          <path
-            d="M 95 20 L 98 25 L 95 30 L 98 35 L 95 40"
-            stroke="#FFFFFF"
-            strokeWidth="3"
-            fill="none"
-            strokeLinecap="round"
-          />
-          <path
-            d="M 95 20 L 92 25 L 95 30 L 92 35 L 95 40"
-            stroke="#FFFFFF"
-            strokeWidth="3"
-            fill="none"
-            strokeLinecap="round"
-          />
+          <path d="M 95 20 L 98 25 L 95 30 L 98 35 L 95 40" stroke="#FFFFFF" strokeWidth="3" fill="none" strokeLinecap="round" />
+          <path d="M 95 20 L 92 25 L 95 30 L 92 35 L 95 40" stroke="#FFFFFF" strokeWidth="3" fill="none" strokeLinecap="round" />
           <line x1="95" y1="20" x2="95" y2="40" stroke="#FFD700" strokeWidth="4" opacity="0.8" />
         </g>
 
@@ -128,7 +87,7 @@ export function BreakingCigarette() {
         <div className="success-text">
           <h1>YOU ARE STRONG</h1>
 
-          <button onClick={handleItHelps} className="it-helps-btn">
+          <button onClick={onItHelps} className="it-helps-btn">
             It helps
           </button>
         </div>
