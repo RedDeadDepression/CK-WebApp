@@ -118,6 +118,7 @@ export default function SosFlow() {
   };
 
   const handleSuccess = () => {
+    createWin.mutate();
     setViewState("SUCCESS");
   };
 
