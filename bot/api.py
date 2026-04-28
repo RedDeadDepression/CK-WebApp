@@ -32,7 +32,7 @@ async def create_invoice(data: dict):
         description="Unlock all strategies",
         payload=payload,
         currency="XTR",
-        prices=[{"label": "VIP", "amount": 1}]
+        prices=[{"label": "VIP", "amount": 750}]
     )
 
     return {"invoice_link": link}
