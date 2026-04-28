@@ -1,19 +1,12 @@
-import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { BrainCircuit, ShieldAlert, Trophy } from "lucide-react";
 import { useWins } from "@/hooks/use-wins";
-import { getLocalStorageWins } from "@/lib/localStorageWins";
 
 export default function Home() {
   const { data: wins, isLoading } = useWins();
-  const [localStorageWins, setLocalStorageWins] = useState(0);
 
-  useEffect(() => {
-    setLocalStorageWins(getLocalStorageWins());
-  }, []);
-
-  const totalWins = isLoading ? localStorageWins : (wins?.length ?? 0);
+  const totalWins = wins?.wins ?? 0;
 
   // ================= TELEGRAM =================
 
