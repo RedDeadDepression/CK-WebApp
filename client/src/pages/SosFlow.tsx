@@ -328,7 +328,7 @@ function SuccessView({ practiceId }: { practiceId: string }) {
     const { data: wins } = useWins();
     const [showContent, setShowContent] = useState(false);
 
-    const totalWins = wins?.length ?? 0;
+    const totalWins = wins?.wins ?? 0;
 
     useEffect(() => {
         // Show additional content after animation completes

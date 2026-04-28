@@ -1,52 +1,55 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@shared/routes";
-import { getTelegramUserId } from "@/lib/devUser";
 
-/* ================= GET WINS ================= */
+function getTelegramUserId() {
+  const tg = window.Telegram?.WebApp;
+  return tg?.initDataUnsafe?.user?.id
+    ? String(tg.initDataUnsafe.user.id)
+    : null;
+}
 
+//  GET wins
 export function useWins() {
-  const telegramUserId = getTelegramUserId();
-
   return useQuery({
-    queryKey: ["wins", telegramUserId],
+    queryKey: ["wins"],
     queryFn: async () => {
-      if (!telegramUserId) return [];
+      const telegramUserId = getTelegramUserId();
+      if (!telegramUserId) return { wins: 0 };
 
       const res = await fetch(
-        `${api.wins.listByUser.path.replace(":telegramUserId", telegramUserId)}`
+        `${api.wins.getByUser.path}?telegramUserId=${telegramUserId}`
       );
 
       if (!res.ok) throw new Error("Failed to fetch wins");
 
-      return res.json();
+      return await res.json(); // { wins: number }
     },
-    enabled: !!telegramUserId,
   });
 }
 
-/* ================= CREATE WIN ================= */
-
+//  CREATE win
 export function useCreateWin() {
   const queryClient = useQueryClient();
-  const telegramUserId = getTelegramUserId();
 
   return useMutation({
     mutationFn: async () => {
-      if (!telegramUserId) throw new Error("No telegram user id");
+      const telegramUserId = getTelegramUserId();
+      if (!telegramUserId) throw new Error("No Telegram user");
 
       const res = await fetch(api.wins.create.path, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: api.wins.create.method,
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ telegramUserId }),
       });
 
       if (!res.ok) throw new Error("Failed to create win");
 
-      return res.json();
+      return await res.json();
     },
-
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["wins", telegramUserId] });
+      queryClient.invalidateQueries({ queryKey: ["wins"] });
     },
   });
 }
