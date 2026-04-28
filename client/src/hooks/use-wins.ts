@@ -10,20 +10,25 @@ function getTelegramUserId() {
 
 //  GET wins
 export function useWins() {
+  const telegramUserId = getTelegramUserId();
+
   return useQuery({
-    queryKey: ["wins"],
+    queryKey: ["wins", telegramUserId],
     queryFn: async () => {
-      const telegramUserId = getTelegramUserId();
       if (!telegramUserId) return { wins: 0 };
 
-      const res = await fetch(
-        `${api.wins.getByUser.path}?telegramUserId=${telegramUserId}`
+      const url = api.wins.getByUser.path.replace(
+        ":telegramUserId",
+        telegramUserId
       );
+
+      const res = await fetch(url);
 
       if (!res.ok) throw new Error("Failed to fetch wins");
 
       return await res.json(); // { wins: number }
     },
+    enabled: !!telegramUserId,
   });
 }
 
@@ -48,8 +53,20 @@ export function useCreateWin() {
 
       return await res.json();
     },
+
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["wins"] });
+      const telegramUserId = getTelegramUserId();
+
+      //  invalidate
+      queryClient.invalidateQueries({
+        queryKey: ["wins", telegramUserId],
+      });
+
+      // optional
+      queryClient.setQueryData(["wins", telegramUserId], (old: any) => {
+        if (!old) return { wins: 1 };
+        return { wins: old.wins + 1 };
+      });
     },
   });
 }
