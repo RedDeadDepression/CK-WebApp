@@ -96,13 +96,13 @@ export function FreePlanStub() {
             </div>
 
             <p className="text-foreground/90 leading-snug text-xs">
-              Get access to all 20 personalized strategies designed to help you overcome cravings.
+              Get access to all 147+ personalized strategies designed to help you overcome cravings.
             </p>
 
             {/* Особенности: уменьшен межстрочный интервал space-y-1.5 */}
             <ul className="space-y-1.5">
               {[
-                "20 personalized strategies",
+                "147+ personalized strategies",
                 "Available anytime, anywhere",
                 "Advanced filtering",
                 "Track your progress",
