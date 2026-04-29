@@ -23,9 +23,10 @@ async def set_main_menu(bot: Bot, config):
     ]
 
     for admin_id in config.bot.admin_ids:
-        await bot.set_my_commands(
-            admin_commands,
-            scope=BotCommandScopeChat(chat_id=admin_id)
-        )
-
-    await bot.set_my_commands(main_menu_commands)
+        try:
+            await bot.set_my_commands(
+                admin_commands,
+                scope=BotCommandScopeChat(chat_id=admin_id)
+            )
+        except Exception as e:
+            print(f"Failed to set admin commands for {admin_id}: {e}")
