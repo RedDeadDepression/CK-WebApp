@@ -27,7 +27,7 @@ export function FreePlanStub() {
 
     console.log("Buying VIP...");
 
-    const res = await fetch("https://ck-webapp-production.up.railway.app/create-invoice", {
+    const res = await fetch("https://ck-bot-production.up.railway.app/create-invoice", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
