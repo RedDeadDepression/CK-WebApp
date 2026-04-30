@@ -78,7 +78,7 @@ app.post("/create-invoice", async (req, res) => {
       payload,
       "",
       "XTR",
-      [{ label: "VIP", amount: 750 }]
+      [{ label: "VIP", amount: 100 }]
     );
 
     res.json({ invoice_link: link });
