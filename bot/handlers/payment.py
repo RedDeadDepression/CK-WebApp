@@ -24,7 +24,7 @@ async def successful_payment(message: Message, db: Database):
     if payload.startswith("vip_"):
         await db.set_vip(user_id)
 
-        await message.answer("✅ Payment successful! VIP activated.")
+        await message.answer("🔥 VIP activated!\n\nYou now have access to all 147+ strategies.\nClose and reopen the app to see your new features 🚀")
 
     else:
         await message.answer("⚠️ Unknown payment type")
