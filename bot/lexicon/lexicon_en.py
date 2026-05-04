@@ -62,7 +62,7 @@ ONBOARDING_FLOWS_EN = {
             {
                 "text": "The main rule: <b>No guilt</b>. Your setbacks don't matter here. "
                         "Setbacks are part of the journey. We don't start over, we keep going.",
-                "button": "Sounds fair"
+                "button": "👍 Sounds fair"
             }
         ]
     },
