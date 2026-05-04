@@ -50,10 +50,14 @@ ONBOARDING_FLOWS_EN = {
                 "image": "cravings.png"
             },
             {
-                "text": '''The secret is <tg-spoiler>that there is <b>NO universal solution</b></tg-spoiler>. Nicotine is tricky.
-                        The <i>"smoke after coffee"</i> trigger and the <i>"smoke when stressed"</i> trigger require <u>different solutions</u>.
-                        I know them all. And <u>I'll find the right one for your situation</u>''',
-                "button": "Continue"
+                "text": (
+                    "The secret is <tg-spoiler>that there is <b>NO universal solution</b></tg-spoiler>.\n"
+                    "Nicotine is tricky.\n\n"
+                    "The <i>\"smoke after coffee\"</i> trigger and the "
+                    "<i>\"smoke when stressed\"</i> trigger require <u>different solutions</u>.\n\n"
+                    "I know them all. And <u>I'll find the right one for your situation</u>."
+                ),
+                "button": "🧠 Continue"
             },
             {
                 "text": "The main rule: <b>No guilt</b>. Your setbacks don't matter here. "
@@ -67,12 +71,15 @@ ONBOARDING_FLOWS_EN = {
         "skip_intro": [
             {
                 "text": "Done! Your plan is loaded. Now you have access to <b>all the bot's features</b>.",
-                "button": "How does this work?"
+                "button": "⚙️ How does this work?"
             },
             {
-                "text": '''When you feel overwhelmed, <u>press SOS</u> – you will receive personalized techniques and your cravings will disappear.
-                        When you want to share your success with someone, <u>press My Stats</u>.''',
-                "button": "And one last thing..."
+                "text": (
+                    "When you feel overwhelmed, <u>press SOS</u> — "
+                    "you will receive personalized techniques and your cravings will fade.\n\n"
+                    "When you want to share your success, <u>press My Stats</u>."
+                ),
+                "button": "👉 And one last thing..."
             },
             {
                 "text": "📌 <b>Pin this chat</b> so you don't have to search for it in a panic.\nWe're starting right now!",
@@ -84,16 +91,19 @@ ONBOARDING_FLOWS_EN = {
         "with_intro": [
             {
                 "text": "Great. Seriously, this is good news. 📅 <b>Statistics say it takes between 7 and 13 attempts to quit for good</b>. That means you didn't fail - You just practiced. You're closer to finishing than ever.",
-                "button": "Ready for the finale!"
+                "button": "🚀 Ready for the finale!"
             },
             {
                 "text": "Done! Your plan is loaded. Now you have access to <b>all the bot's features</b>.",
-                "button": "How does this work?"
+                "button": "⚙️ How does this work?"
             },
             {
-                "text": '''When you feel overwhelmed, <u>press SOS</u> – you will receive personalized techniques and your cravings will disappear.
-                        When you want to share your success with someone, <u>press My Stats</u>.''',
-                "button": "And one last thing..."
+                "text": (
+                    "When you feel overwhelmed, <u>press SOS</u> — "
+                    "you will receive personalized techniques and your cravings will fade.\n\n"
+                    "When you want to share your success, <u>press My Stats</u>."
+                ),
+                "button": "👉 And one last thing..."
             },
             {
                 "text": "📌 <b>Pin this chat</b> so you don't have to search for it in a panic.\nWe're starting right now!",
